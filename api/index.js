@@ -1,17 +1,18 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const morgan = require("morgan");
+const authRoute = require("./routes/auth.route");
 dotenv.config();
 mongoose
   .connect(process.env.MONGO)
   .then((res) => {
-    console.log("connect to db");
+    app.listen(3000);
   })
   .catch((err) => {
     console.log(err);
   });
 const app = express();
-
-app.listen(3000, () => {
-  console.log("server is running on port 3000");
-});
+app.use(express.json());
+app.use(morgan("dev"));
+app.use("/api/auth", authRoute);
