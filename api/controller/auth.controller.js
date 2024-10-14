@@ -25,7 +25,11 @@ const signin = async (req, res, next) => {
     //return other information without the password
     const { password: pass, ...rest } = validUser._doc;
     res
-      .cookie("access_token", token, { httpOnly: true })
+      .cookie("access_token", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+      })
       .status(200)
       .json(rest);
   } catch (error) {
