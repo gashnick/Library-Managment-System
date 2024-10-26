@@ -9,7 +9,7 @@ const singup = async (req, res, next) => {
   const newUser = new User({ username, email, password: hashedPassword });
   try {
     await newUser.save();
-    res.status(2001).json("User created Successfuly!");
+    res.status(200).json("User created Successfuly!");
   } catch (error) {
     next(error);
   }
