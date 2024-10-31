@@ -9,6 +9,7 @@ import Header from "./components/Header";
 import ManageBooks from "./pages/ManageBooks";
 import BorrowedBooks from "./pages/BorrowedBooks";
 import ReturneBooks from "./pages/ReturneBooks";
+import PrivateRoute from "./components/PrivateRoute";
 
 export default function App() {
   return (
@@ -18,7 +19,9 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/sign-in" element={<Signin />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route element={<PrivateRoute />}>
+          <Route path="/profile" element={<Profile />} />
+        </Route>
         <Route path="/sign-up" element={<Signup />} />
         <Route path="/manage-books" element={<ManageBooks />} />
         <Route path="/borrowed-books" element={<BorrowedBooks />} />

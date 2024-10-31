@@ -6,6 +6,7 @@ import {
   signInSuccess,
   signInFailure,
 } from "../redux/user/userSlice";
+import Auth from "../components/Auth";
 
 export default function Signin() {
   const [formData, setFormData] = useState({});
@@ -33,16 +34,22 @@ export default function Signin() {
       });
 
       const data = await res.json();
-      console.log(data);
+      //console.log(data);
       if (data.success === false) {
         dispatch(signInFailure(data.message));
         return;
       }
-
-      // Handle successful signup
-      dispatch(signInSuccess(data));
-      navigate("/dashboard");
-      // Optionally, redirect or show a success message
+      //check if logged-in user has a librarian role
+      if (data.role === "librarian") {
+        // Handle successful signup
+        dispatch(signInSuccess(data));
+        navigate("/dashboard");
+        // Optionally, redirect or show a success message
+      } else {
+        dispatch(
+          signInFailure("Access denied. Only librarians can access this system")
+        );
+      }
     } catch (err) {
       dispatch(signInFailure(err.message));
     }
@@ -74,6 +81,7 @@ export default function Signin() {
         >
           {loading ? "Loading..." : "Sign in"}
         </button>
+        <Auth />
       </form>
       <div className="flex gap-2 mt-5">
         <p>Dont have an account?</p>
