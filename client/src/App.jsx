@@ -6,6 +6,9 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Signup from "./pages/Signup";
 import Header from "./components/Header";
+import ManageBooks from "./pages/ManageBooks";
+import BorrowedBooks from "./pages/BorrowedBooks";
+import ReturneBooks from "./pages/ReturneBooks";
 
 export default function App() {
   return (
@@ -17,6 +20,9 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/sign-up" element={<Signup />} />
+        <Route path="/manage-books" element={<ManageBooks />} />
+        <Route path="/borrowed-books" element={<BorrowedBooks />} />
+        <Route path="/return-books" element={<ReturneBooks />} />
       </Routes>
     </BrowserRouter>
   );

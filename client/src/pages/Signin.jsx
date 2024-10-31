@@ -41,7 +41,7 @@ export default function Signin() {
 
       // Handle successful signup
       dispatch(signInSuccess(data));
-      navigate("/");
+      navigate("/dashboard");
       // Optionally, redirect or show a success message
     } catch (err) {
       dispatch(signInFailure(err.message));
