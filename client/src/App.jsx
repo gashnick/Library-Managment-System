@@ -6,10 +6,10 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Signup from "./pages/Signup";
 import Header from "./components/Header";
-import ManageBooks from "./pages/ManageBooks";
 import BorrowedBooks from "./pages/BorrowedBooks";
 import ReturneBooks from "./pages/ReturneBooks";
 import PrivateRoute from "./components/PrivateRoute";
+import ManageBooks from "./pages/book/ManageBooks";
 
 export default function App() {
   return (

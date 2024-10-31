@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 const authRoute = require("./routes/auth.route");
+const bookRoute = require("./routes/book.route");
 dotenv.config();
 mongoose
   .connect(process.env.MONGO)
@@ -16,6 +17,7 @@ const app = express();
 app.use(express.json());
 app.use(morgan("dev"));
 app.use("/api/auth", authRoute);
+app.use("/api/books", bookRoute);
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
