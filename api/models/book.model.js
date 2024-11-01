@@ -16,8 +16,10 @@ const bookSchema = new mongoose.Schema(
       required: true,
     },
     year: {
-      type: String,
+      type: Number, // Changed from String to Number
       required: true,
+      min: [1000, "Year must be a 4 digit number"], // Example validation
+      max: [new Date().getFullYear(), "Year cannot be in the future"], // Example validation
     },
     status: {
       type: String,

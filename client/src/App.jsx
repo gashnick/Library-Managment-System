@@ -9,6 +9,7 @@ import Header from "./components/Header";
 import BorrowedBooks from "./pages/BorrowedBooks";
 import ReturneBooks from "./pages/ReturneBooks";
 import PrivateRoute from "./components/PrivateRoute";
+import BookCreate from "./pages/book/BookCreate";
 import ManageBooks from "./pages/book/ManageBooks";
 
 export default function App() {
@@ -23,9 +24,10 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
         </Route>
         <Route path="/sign-up" element={<Signup />} />
-        <Route path="/manage-books" element={<ManageBooks />} />
         <Route path="/borrowed-books" element={<BorrowedBooks />} />
         <Route path="/return-books" element={<ReturneBooks />} />
+        <Route path="/create" element={<BookCreate />} />
+        <Route path="/manage-books" element={<ManageBooks />} />
       </Routes>
     </BrowserRouter>
   );
