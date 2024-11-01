@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
+const cookieParser = require("cookie-parser");
 const authRoute = require("./routes/auth.route");
 const bookRoute = require("./routes/book.route");
 dotenv.config();
@@ -15,6 +16,7 @@ mongoose
   });
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 app.use(morgan("dev"));
 app.use("/api/auth", authRoute);
 app.use("/api/books", bookRoute);
