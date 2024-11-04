@@ -8,6 +8,7 @@ import {
   signOutFailure,
   signOutSuccess,
 } from "../redux/user/userSlice";
+import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
   const { currentUser, loading, error } = useSelector((state) => state.user);
@@ -15,7 +16,7 @@ export default function Profile() {
   const [formData, setFormData] = useState({});
   const dispatch = useDispatch();
   const [updateSuccess, setUpdateSuccess] = useState(false);
-
+  const navigate = useNavigate();
   const handleChange = (e) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -54,6 +55,7 @@ export default function Profile() {
         return;
       }
       dispatch(signOutSuccess(data));
+      navigate("/sign-in");
     } catch (error) {
       dispatch(signOutFailure(error.message));
     }

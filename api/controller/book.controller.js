@@ -27,14 +27,18 @@ const createBook = async (req, res, next) => {
     next(error); // Handle other errors
   }
 };
+
+// Get all books
 const getBooks = async (req, res, next) => {
   try {
-    const book = await Book.find();
-    return res.status(200).json(data);
+    const books = await Book.find();
+    console.log(books); // Log the fetched books
+    return res.status(200).json(books);
   } catch (error) {
-    next(error);
+    next(errorHandler(405, error.message));
   }
 };
+
 module.exports = {
   createBook,
   getBooks,

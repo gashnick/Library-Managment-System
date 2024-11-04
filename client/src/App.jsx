@@ -6,11 +6,9 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Signup from "./pages/Signup";
 import Header from "./components/Header";
-import BorrowedBooks from "./pages/BorrowedBooks";
-import ReturneBooks from "./pages/ReturneBooks";
 import PrivateRoute from "./components/PrivateRoute";
 import BookCreate from "./pages/book/BookCreate";
-import ManageBooks from "./pages/book/ManageBooks";
+import DispalyBooks from "./pages/book/DisplayBooks";
 
 export default function App() {
   return (
@@ -24,10 +22,8 @@ export default function App() {
         </Route>
         <Route path="/sign-up" element={<Signup />} />
         <Route path="/dashboard" element={<Dashboard />}>
-          <Route path="borrowed-books" element={<BorrowedBooks />} />
-          <Route path="return-books" element={<ReturneBooks />} />
           <Route path="create" element={<BookCreate />} />
-          <Route path="manage-books" element={<ManageBooks />} />
+          <Route path="allbooks" element={<DispalyBooks />} />
         </Route>
       </Routes>
     </BrowserRouter>
