@@ -5,41 +5,77 @@ const errorHandler = require("../utils/error");
 const createBook = async (req, res, next) => {
   const { title, author, genre, year, status } = req.body;
 
-  // Basic validation
-  if (!title || !author || !genre || !year) {
-    return res
-      .status(400)
-      .json({ success: false, message: "All fields are required." });
-  }
-
   const newBook = new Book({ title, author, genre, year, status });
   try {
     await newBook.save();
-    res.status(201).json({
-      success: true,
-      message: "Book created successfully!",
-      book: newBook,
-    });
+    res.status(201).json("Book created successfully!");
   } catch (error) {
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ success: false, message: error.message });
-    }
-    next(error); // Handle other errors
+    next(error);
   }
 };
 
 // Get all books
-const getBooks = async (req, res, next) => {
+const getAllBooks = async (req, res, next) => {
   try {
     const books = await Book.find();
-    console.log(books); // Log the fetched books
-    return res.status(200).json(books);
+    res.status(200).json({ success: true, books }); // Ensures the response has `books`
   } catch (error) {
-    next(errorHandler(405, error.message));
+    next(error);
+  }
+};
+
+// Edit a book by ID
+const updateBook = async (req, res, next) => {
+  const { id } = req.params;
+  const { title, author, genre, year, status } = req.body;
+
+  try {
+    const updatedBook = await Book.findByIdAndUpdate(
+      id,
+      { title, author, genre, year, status },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedBook) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Book not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Book updated successfully!",
+      book: updatedBook,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Delete a book by ID
+const deleteBook = async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    const deletedBook = await Book.findByIdAndDelete(id);
+
+    if (!deletedBook) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Book not found" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Book deleted successfully!" });
+  } catch (error) {
+    next(error);
   }
 };
 
 module.exports = {
   createBook,
-  getBooks,
+  getAllBooks,
+  updateBook,
+  deleteBook,
 };

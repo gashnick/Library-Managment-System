@@ -25,7 +25,7 @@ export default function BookCreate() {
     e.preventDefault(); // Prevent page refresh
     setLoading(true);
     try {
-      const res = await fetch("/api/books/create", {
+      const res = await fetch("/api/book/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -34,7 +34,7 @@ export default function BookCreate() {
       });
 
       const data = await res.json();
-      console.log(data);
+      //console.log(data);
       if (data.success === false) {
         setLoading(false);
         setError(data.message);
@@ -51,7 +51,7 @@ export default function BookCreate() {
         year: "",
         status: "available",
       }); // Clear form
-      navigate("/manage-books");
+      navigate("/dashboard/allbooks");
     } catch (err) {
       setLoading(false);
       setError(err.message);
@@ -102,8 +102,8 @@ export default function BookCreate() {
           onChange={handleChange}
           className="border p-3 rounded-lg"
         >
-          <option value="available">Available</option>
-          <option value="borrowed">Borrowed</option>
+          <option value="available">available</option>
+          <option value="borrowed">borrowed</option>
           {/* Add more options if needed */}
         </select>
         <button
@@ -115,8 +115,8 @@ export default function BookCreate() {
       </form>
       <div className="flex gap-2 mt-5">
         <p>Not sure yet?</p>
-        <Link to={"/manage-books"}>
-          <span className="text-blue-700">Manage Books</span>
+        <Link to={"/dashboard/allbooks"}>
+          <span className="text-blue-700">See all Books</span>
         </Link>
       </div>
       {error && <p className="text-red-500 mt-5">{error}</p>}

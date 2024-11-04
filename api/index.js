@@ -5,7 +5,7 @@ const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const authRoute = require("./routes/auth.route");
 const userRoute = require("./routes/user.route");
-const bookRoute = require("./routes/book.route.js");
+const bookRoute = require("./routes/book.route");
 dotenv.config();
 mongoose
   .connect(process.env.MONGO)

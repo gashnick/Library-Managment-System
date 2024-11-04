@@ -12,7 +12,10 @@ const Sidenav = () => {
           </Link>
         </li>
         <li>
-          <Link to="/allbooks" className="block p-4 hover:bg-slate-700">
+          <Link
+            to="/dashboard/allbooks"
+            className="block p-4 hover:bg-slate-700"
+          >
             All Books
           </Link>
         </li>
