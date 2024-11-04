@@ -19,15 +19,16 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/sign-in" element={<Signin />} />
-        <Route path="/dashboard" element={<Dashboard />} />
         <Route element={<PrivateRoute />}>
-          <Route path="/profile" element={<Profile />} />
+          <Route path="profile" element={<Profile />} />
         </Route>
         <Route path="/sign-up" element={<Signup />} />
-        <Route path="/borrowed-books" element={<BorrowedBooks />} />
-        <Route path="/return-books" element={<ReturneBooks />} />
-        <Route path="/create" element={<BookCreate />} />
-        <Route path="/manage-books" element={<ManageBooks />} />
+        <Route path="/dashboard" element={<Dashboard />}>
+          <Route path="borrowed-books" element={<BorrowedBooks />} />
+          <Route path="return-books" element={<ReturneBooks />} />
+          <Route path="create" element={<BookCreate />} />
+          <Route path="manage-books" element={<ManageBooks />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

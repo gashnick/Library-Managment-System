@@ -5,6 +5,7 @@ const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const authRoute = require("./routes/auth.route");
 const bookRoute = require("./routes/book.route");
+const userRoute = require("./routes/user.route");
 dotenv.config();
 mongoose
   .connect(process.env.MONGO)
@@ -20,6 +21,7 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 app.use("/api/auth", authRoute);
 app.use("/api/books", bookRoute);
+app.use("/api/user", userRoute);
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal Server Error";

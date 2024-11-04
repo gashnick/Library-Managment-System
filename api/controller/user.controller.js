@@ -1,15 +1,17 @@
-const bycryptjs = require("bcryptjs");
-import User from "../models/user.model";
-import errorHandler from "../utils/error";
+const bcryptjs = require("bcryptjs");
+const User = require("../models/user.model");
+const errorHandler = require("../utils/error");
 
 const updateUser = async (req, res, next) => {
   if (req.user.id !== req.params.id)
     return next(errorHandler(401, "You can only update your own account"));
+
   if (req.body.password) {
-    req.body.password = bycryptjs.hashSync(req.body.password, 10);
+    req.body.password = bcryptjs.hashSync(req.body.password, 10);
   }
+
   try {
-    const updateUser = await User.findByIdAndDelete(
+    const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
       {
         $set: {
@@ -21,8 +23,13 @@ const updateUser = async (req, res, next) => {
       },
       { new: true }
     );
-    const { password, ...rest } = updateUser._doc;
-    res.satus(200).json(rest);
+
+    if (!updatedUser) {
+      return next(errorHandler(404, "User not found"));
+    }
+
+    const { password, ...rest } = updatedUser._doc;
+    res.status(200).json(rest);
   } catch (error) {
     next(error);
   }

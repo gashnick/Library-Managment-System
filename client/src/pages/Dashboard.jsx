@@ -1,5 +1,6 @@
 import React from "react";
 import Sidenav from "../components/Sidenav"; // Adjust the import path as necessary
+import { Outlet } from "react-router-dom";
 
 export default function Dashboard() {
   return (
@@ -10,6 +11,7 @@ export default function Dashboard() {
         <p className="mt-4">Welcome to the Library Management System!</p>
         <p>Manage books, register borrowers, and track borrowing activity.</p>
         {/* Additional components or information can be added here */}
+        <Outlet />
       </div>
     </div>
   );
