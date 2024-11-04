@@ -27,17 +27,15 @@ const createBook = async (req, res, next) => {
     next(error); // Handle other errors
   }
 };
-
-const bookGet = async (req, res, next) => {
+const getBooks = async (req, res, next) => {
   try {
-    const books = await Book.find();
-    res.status(200).json(books);
+    const book = await Book.find();
+    return res.status(200).json(data);
   } catch (error) {
     next(error);
   }
 };
-
 module.exports = {
   createBook,
-  bookGet,
+  getBooks,
 };
