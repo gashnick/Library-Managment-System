@@ -1,23 +1,12 @@
-// models/Borrower.js
 const mongoose = require("mongoose");
 
-const BorrowerSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  contact: {
-    type: String,
-  },
-  email: {
-    type: String,
-  },
-  borrowedBooks: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Book",
-    },
-  ],
+const borrowerSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  contact: { type: String, required: true },
+  email: { type: String, required: true, unique: true }, // Ensures email is unique
+  booksBorrowed: { type: Number, default: 0 },
+  returnDueDate: { type: Date, default: null },
 });
 
-module.exports = mongoose.model("Borrower", BorrowerSchema);
+const Borrower = mongoose.model("Borrower", borrowerSchema);
+module.exports = Borrower;

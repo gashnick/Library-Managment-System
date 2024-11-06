@@ -29,9 +29,8 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />}>
           <Route path="create" element={<BookCreate />} />
           <Route path="allbooks" element={<DispalyBooks />} />
-          <Route path="allborrowers" element={<Borrowers />}>
-            <Route path="registerborrowers" element={<RegisterBorrower />} />
-          </Route>
+          <Route path="allborrowers" element={<Borrowers />} />
+          <Route path="registerborrower" element={<RegisterBorrower />} />
           <Route path="borrowed" element={<BorrowedBooks />} />
           <Route path="returned" element={<ReturnedBooks />} />
           <Route path="history" element={<History />} />

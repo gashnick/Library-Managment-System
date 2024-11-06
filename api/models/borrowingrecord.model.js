@@ -1,25 +1,29 @@
-// models/BorrowingRecord.js
 const mongoose = require("mongoose");
 
-const BorrowingRecordSchema = new mongoose.Schema({
-  borrowerId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Borrower",
-    required: true,
+const borrowerSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    contact: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+    },
+    booksBorrowed: {
+      type: Number,
+      default: 0,
+    },
+    returnDueDate: {
+      type: Date,
+    },
   },
-  bookId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Book",
-    required: true,
-  },
-  borrowedDate: {
-    type: Date,
-    default: Date.now,
-  },
-  returnedDate: {
-    type: Date,
-    default: null, // Set when the book is returned
-  },
-});
+  { timestamps: true }
+);
 
-module.exports = mongoose.model("BorrowingRecord", BorrowingRecordSchema);
+const Borrower = mongoose.model("Borrower", borrowerSchema);
+module.exports = Borrower;
