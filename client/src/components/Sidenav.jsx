@@ -21,10 +21,42 @@ const Sidenav = () => {
         </li>
         <li>
           <Link
-            to="/dashboard/allusers"
+            to="/dashboard/allborrowers"
             className="block p-4 hover:bg-slate-700"
           >
-            Registered Users
+            Borrowers
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/dashboard/borrowed"
+            className="block p-4 hover:bg-slate-700"
+          >
+            Borrowed Books
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/dashboard/returned"
+            className="block p-4 hover:bg-slate-700"
+          >
+            Returned Books
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/dashboard/history"
+            className="block p-4 hover:bg-slate-700"
+          >
+            History
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/dashboard/history"
+            className="block p-4 hover:bg-slate-700"
+          >
+            Sign out
           </Link>
         </li>
       </ul>
