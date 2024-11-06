@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
-import axios from "axios";
 import { Link } from "react-router-dom";
 
 const columns = (handleDelete) => [
@@ -41,42 +40,34 @@ const columns = (handleDelete) => [
 
 export default function DisplayBooks() {
   const [rows, setRows] = useState([]);
-  const [search, setSearch] = useState("Harry Potter"); // Example search term
 
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await axios.get(
-          `https://www.googleapis.com/books/v1/volumes?q=${search}&key=AIzaSyDFhoAT_M0w74UcPGVcA6RwKpXrRuanauo`
-        );
+        const response = await fetch("/book.json"); // Fetch from public folder
+        const data = await response.json();
 
-        // Format the data
-        const books = response.data.items.map((item, index) => ({
-          id: item.id || index, // Use API ID if available, or index
-          title: item.volumeInfo.title || "N/A",
-          author: item.volumeInfo.authors?.join(", ") || "Unknown",
-          genre: item.volumeInfo.categories?.[0] || "General",
-          year: item.volumeInfo.publishedDate?.split("-")[0] || "N/A",
-          status: "Available", // Set your own default status or logic
+        // Format the data for the DataGrid
+        const books = data.response.books.map((book, index) => ({
+          id: book.id || index,
+          title: book.title || "N/A",
+          author: book.author || "Unknown",
+          genre: book.categories || "General",
+          year: book.year || "N/A",
+          status: "Available",
         }));
 
         setRows(books);
       } catch (error) {
-        console.error("Error fetching books:", error);
+        console.error("Error loading books:", error);
       }
     };
 
     fetchBooks();
-  }, [search]);
+  }, []);
 
-  const handleDelete = async (id) => {
-    try {
-      // Update the delete URL if needed
-      await axios.delete(`http://localhost:3000/api/book/delete/${id}`);
-      setRows(rows.filter((row) => row.id !== id));
-    } catch (error) {
-      console.log("Error deleting the book", error);
-    }
+  const handleDelete = (id) => {
+    setRows(rows.filter((row) => row.id !== id));
   };
 
   const paginationModel = { page: 0, pageSize: 5 };
