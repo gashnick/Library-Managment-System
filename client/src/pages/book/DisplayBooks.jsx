@@ -4,7 +4,7 @@ import Paper from "@mui/material/Paper";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-const columns = [
+const columns = (handleDelete) => [
   { field: "id", headerName: "ID", width: 70 },
   { field: "title", headerName: "Title", width: 200 },
   { field: "author", headerName: "Author", width: 150 },
@@ -29,7 +29,7 @@ const columns = [
           variant="contained"
           color="primary"
           size="small"
-          className="rounded-sm text-sm  text-white bg-red-700 p-1"
+          className="rounded-sm text-sm text-white bg-red-700 p-1"
           onClick={() => handleDelete(params.row.id)}
         >
           Delete
@@ -41,44 +41,44 @@ const columns = [
 
 export default function DisplayBooks() {
   const [rows, setRows] = useState([]);
+  const [search, setSearch] = useState("Harry Potter"); // Example search term
 
   useEffect(() => {
     const fetchBooks = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/book/books"
+          `https://www.googleapis.com/books/v1/volumes?q=${search}&key=AIzaSyDFhoAT_M0w74UcPGVcA6RwKpXrRuanauo`
         );
-        const books = response.data;
-        const formattedBooks = books.map((book, index) => ({
-          id: index + 1,
-          title: book.title,
-          author: book.author,
-          genre: book.genre,
-          year: book.year,
-          status: book.status,
+
+        // Format the data
+        const books = response.data.items.map((item, index) => ({
+          id: item.id || index, // Use API ID if available, or index
+          title: item.volumeInfo.title || "N/A",
+          author: item.volumeInfo.authors?.join(", ") || "Unknown",
+          genre: item.volumeInfo.categories?.[0] || "General",
+          year: item.volumeInfo.publishedDate?.split("-")[0] || "N/A",
+          status: "Available", // Set your own default status or logic
         }));
 
-        setRows(formattedBooks);
+        setRows(books);
       } catch (error) {
         console.error("Error fetching books:", error);
       }
     };
 
     fetchBooks();
-  }, []);
+  }, [search]);
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/book/delete/$(id)`);
-      setRows(
-        rows.filter((row) => {
-          row.id !== id;
-        })
-      );
+      // Update the delete URL if needed
+      await axios.delete(`http://localhost:3000/api/book/delete/${id}`);
+      setRows(rows.filter((row) => row.id !== id));
     } catch (error) {
       console.log("Error deleting the book", error);
     }
   };
+
   const paginationModel = { page: 0, pageSize: 5 };
 
   return (
@@ -97,7 +97,7 @@ export default function DisplayBooks() {
       <Paper sx={{ height: 400, width: "100%" }}>
         <DataGrid
           rows={rows}
-          columns={columns}
+          columns={columns(handleDelete)}
           initialState={{ pagination: { paginationModel } }}
           pageSizeOptions={[5, 10]}
           checkboxSelection={false}

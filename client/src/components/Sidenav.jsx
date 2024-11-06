@@ -19,6 +19,14 @@ const Sidenav = () => {
             All Books
           </Link>
         </li>
+        <li>
+          <Link
+            to="/dashboard/allusers"
+            className="block p-4 hover:bg-slate-700"
+          >
+            Registered Users
+          </Link>
+        </li>
       </ul>
     </div>
   );

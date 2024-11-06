@@ -9,6 +9,8 @@ import Header from "./components/Header";
 import PrivateRoute from "./components/PrivateRoute";
 import BookCreate from "./pages/book/BookCreate";
 import DispalyBooks from "./pages/book/DisplayBooks";
+import Users from "./pages/users/Users";
+import RegisterUser from "./pages/users/RegisterUser";
 
 export default function App() {
   return (
@@ -24,6 +26,9 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />}>
           <Route path="create" element={<BookCreate />} />
           <Route path="allbooks" element={<DispalyBooks />} />
+          <Route path="allusers" element={<Users />}>
+            <Route path="registerusers" element={<RegisterUser />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

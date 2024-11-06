@@ -10,6 +10,6 @@ const {
 router.post("/create", createBook); // Create a new book
 router.get("/books", getAllBooks);
 router.put("/update/:id", updateBook);
-router.delete("/delete/:id", deleteBook);
+router.delete("/delete", deleteBook);
 
 module.exports = router;
