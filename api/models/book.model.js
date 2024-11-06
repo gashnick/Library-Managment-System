@@ -1,35 +1,39 @@
+// models/Book.js
 const mongoose = require("mongoose");
 
-const bookSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    author: {
-      type: String,
-      required: true,
-    },
-    genre: {
-      type: String,
-      required: true,
-    },
-    year: {
-      type: Number, // Changed from String to Number
-      required: true,
-      min: [1000, "Year must be a 4 digit number"], // Example validation
-      max: [new Date().getFullYear(), "Year cannot be in the future"], // Example validation
-    },
-    status: {
-      type: String,
-      enum: ["available", "borrowed"],
-      default: "available",
-    },
+const BookSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
   },
-  { timestamps: true }
-);
+  author: {
+    type: String,
+    required: true,
+  },
+  genre: {
+    type: String,
+  },
+  publicationYear: {
+    type: Number,
+  },
+  status: {
+    type: String,
+    enum: ["available", "borrowed"],
+    default: "available",
+  },
+  borrowedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Borrower",
+    default: null, // null if the book is available
+  },
+  borrowedDate: {
+    type: Date,
+    default: null,
+  },
+  returnDate: {
+    type: Date,
+    default: null,
+  },
+});
 
-const Book = mongoose.model("Book", bookSchema);
-
-module.exports = Book;
+module.exports = mongoose.model("Book", BookSchema);
