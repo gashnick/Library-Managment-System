@@ -1,5 +1,3 @@
-// BorrowAbookModel.js
-
 import React, { useState } from "react";
 import Modal from "@mui/material/Modal";
 import Box from "@mui/material/Box";
@@ -28,9 +26,37 @@ export default function BorrowAbookModel({
   const [selectedBook, setSelectedBook] = useState("");
   const [selectedBorrower, setSelectedBorrower] = useState("");
 
-  const handleBorrow = () => {
+  const handleBorrow = async () => {
     if (selectedBook && selectedBorrower) {
-      onBorrow(selectedBook, selectedBorrower);
+      // Prepare data to be sent
+      const borrowedBookData = {
+        title: selectedBook.title,
+        author: selectedBook.author,
+        genre: selectedBook.categories,
+        year: selectedBook.year,
+        borrowerName: selectedBorrower.name,
+        borrowDate: new Date().toISOString(),
+      };
+
+      // Send a POST request to save the borrowed book in the database
+      try {
+        const response = await fetch("/api/borrowedbooks/addborrowed", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(borrowedBookData),
+        });
+
+        if (response.ok) {
+          console.log("Borrowed book saved successfully.");
+          onBorrow(); // Call onBorrow prop to refresh the borrowed books list if needed
+        } else {
+          console.error("Failed to save borrowed book.");
+        }
+      } catch (error) {
+        console.error("Error saving borrowed book:", error);
+      }
     }
   };
 

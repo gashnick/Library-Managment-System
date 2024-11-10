@@ -4,7 +4,6 @@ import Paper from "@mui/material/Paper";
 import { Link } from "react-router-dom";
 import { fetchBooks, fetchBorrowers } from "./apiService";
 import BorrowAbookModel from "../../components/BorrowAbookModel";
-import BorrowedBooks from "../borrowers/BorrowedBooks"; // Import BorrowedBooks
 
 const columns = [
   { field: "id", headerName: "ID", width: 70 },
@@ -19,7 +18,6 @@ export default function DisplayBooks() {
   const [rows, setRows] = useState([]);
   const [borrowers, setBorrowers] = useState([]);
   const [openModal, setOpenModal] = useState(false);
-  const [borrowedBooks, setBorrowedBooks] = useState([]);
 
   useEffect(() => {
     const loadBooks = async () => {
@@ -42,19 +40,6 @@ export default function DisplayBooks() {
       book.id === borrowedBook.id ? { ...book, status: "Borrowed" } : book
     );
     setRows(updatedBooks);
-
-    const borrowedBookData = {
-      ...borrowedBook,
-      borrowerName: selectedBorrower.name, // Add borrower name
-      borrowDate: new Date().toLocaleDateString(),
-    };
-
-    // Save to localStorage and update borrowedBooks state
-    const storedBorrowedBooks =
-      JSON.parse(localStorage.getItem("borrowedBooks")) || [];
-    storedBorrowedBooks.push(borrowedBookData);
-    localStorage.setItem("borrowedBooks", JSON.stringify(storedBorrowedBooks));
-    setBorrowedBooks((prev) => [...prev, borrowedBookData]);
   };
 
   const paginationModel = { page: 0, pageSize: 5 };
@@ -89,15 +74,12 @@ export default function DisplayBooks() {
         />
       </Paper>
 
-      {/* Render BorrowedBooks */}
-      <BorrowedBooks books={borrowedBooks} />
-
       <BorrowAbookModel
         open={openModal}
         onClose={() => setOpenModal(false)}
         books={rows}
         borrowers={borrowers}
-        onBorrow={handleBorrow} // Pass handleBorrow to the modal
+        onBorrow={handleBorrow}
       />
     </div>
   );

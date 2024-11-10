@@ -16,10 +16,20 @@ export default function BorrowedBooks() {
   const [borrowedBooks, setBorrowedBooks] = useState([]);
 
   useEffect(() => {
-    // Fetch borrowed books from localStorage
-    const storedBooks = JSON.parse(localStorage.getItem("borrowedBooks")) || [];
-    console.log(storedBooks); // Log to inspect the structure if needed
-    setBorrowedBooks(storedBooks);
+    // Fetch borrowed books from the database
+    const fetchBorrowedBooks = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/borrowedbooks/getborrowed"
+        );
+        const data = await response.json();
+        setBorrowedBooks(data);
+      } catch (error) {
+        console.error("Error fetching borrowed books:", error);
+      }
+    };
+
+    fetchBorrowedBooks();
   }, []);
 
   return (
@@ -29,7 +39,7 @@ export default function BorrowedBooks() {
         <DataGrid
           rows={borrowedBooks.map((book, index) => ({
             ...book,
-            id: book.id || index, // Ensure each row has a unique id
+            id: book._id || index, // Use MongoDB _id as unique id
           }))}
           columns={columns}
           pageSizeOptions={[5, 10]}

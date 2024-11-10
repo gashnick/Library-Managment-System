@@ -7,6 +7,7 @@ const authRoute = require("./routes/auth.route");
 const userRoute = require("./routes/user.route");
 const bookRoute = require("./routes/book.route");
 const borrowerRoute = require("./routes/borrower.route");
+const borrowedBookRoute = require("./routes/borrowed.route");
 const cors = require("cors");
 dotenv.config();
 mongoose
@@ -26,6 +27,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/book", bookRoute);
 app.use("/api/borrower", borrowerRoute);
+app.use("/api/borrowedbooks", borrowedBookRoute);
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
