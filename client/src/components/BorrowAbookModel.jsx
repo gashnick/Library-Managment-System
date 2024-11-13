@@ -28,7 +28,6 @@ export default function BorrowAbookModel({
 
   const handleBorrow = async () => {
     if (selectedBook && selectedBorrower) {
-      // Prepare data to be sent
       const borrowedBookData = {
         title: selectedBook.title,
         author: selectedBook.author,
@@ -38,8 +37,8 @@ export default function BorrowAbookModel({
         borrowDate: new Date().toISOString(),
       };
 
-      // Send a POST request to save the borrowed book in the database
       try {
+        // Step 1: Save the borrowed book in the database
         const response = await fetch("/api/borrowedbooks/addborrowed", {
           method: "POST",
           headers: {
@@ -50,12 +49,23 @@ export default function BorrowAbookModel({
 
         if (response.ok) {
           console.log("Borrowed book saved successfully.");
-          onBorrow(); // Call onBorrow prop to refresh the borrowed books list if needed
+
+          // Step 2: Update the book status in book.json
+          await fetch("/api/books/updateStatus", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ bookId: selectedBook.id }),
+          });
+
+          console.log("Book status updated in book.json");
+          onBorrow(); // Refresh borrowed books list if needed
         } else {
           console.error("Failed to save borrowed book.");
         }
       } catch (error) {
-        console.error("Error saving borrowed book:", error);
+        console.error("Error:", error);
       }
     }
   };

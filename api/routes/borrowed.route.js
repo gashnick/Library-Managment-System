@@ -3,6 +3,7 @@ const express = require("express");
 const {
   addBorrowedBook,
   getBorrowedBook,
+  returnABook,
 } = require("../controller/borrowed.controller");
 const router = express.Router();
 
@@ -11,5 +12,7 @@ router.post("/addborrowed", addBorrowedBook);
 
 // GET endpoint to retrieve all borrowed books
 router.get("/getborrowed", getBorrowedBook);
+
+router.put("/return/:id", returnABook);
 
 module.exports = router;
