@@ -31,7 +31,7 @@ export default function BorrowAbookModel({
       const borrowedBookData = {
         title: selectedBook.title,
         author: selectedBook.author,
-        genre: selectedBook.categories,
+        genre: selectedBook.genre,
         year: selectedBook.year,
         borrowerName: selectedBorrower.name,
         borrowDate: new Date().toISOString(),
@@ -51,7 +51,7 @@ export default function BorrowAbookModel({
           console.log("Borrowed book saved successfully.");
 
           // Step 2: Update the book status in book.json
-          await fetch("/api/books/updateStatus", {
+          await fetch("http://localhost:3000/api/status/update-status", {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -60,7 +60,10 @@ export default function BorrowAbookModel({
           });
 
           console.log("Book status updated in book.json");
-          onBorrow(); // Refresh borrowed books list if needed
+
+          // Call onBorrow with selectedBook and selectedBorrower
+          onBorrow(selectedBook, selectedBorrower); // Pass selected book and borrower
+          onClose(); // Close the modal after successful borrowing
         } else {
           console.error("Failed to save borrowed book.");
         }
@@ -75,6 +78,7 @@ export default function BorrowAbookModel({
       <Box sx={modalStyle}>
         <h2 id="borrow-book-modal-title">Borrow a Book</h2>
 
+        {/* Book selection with unique key */}
         <TextField
           select
           label="Select Book"
@@ -83,13 +87,14 @@ export default function BorrowAbookModel({
           onChange={(e) => setSelectedBook(e.target.value)}
           margin="normal"
         >
-          {books.map((book) => (
-            <MenuItem key={book.id} value={book}>
+          {books.map((book, index) => (
+            <MenuItem key={book.id || index} value={book}>
               {book.title}
             </MenuItem>
           ))}
         </TextField>
 
+        {/* Borrower selection with unique key */}
         <TextField
           select
           label="Select Borrower"
@@ -98,8 +103,8 @@ export default function BorrowAbookModel({
           onChange={(e) => setSelectedBorrower(e.target.value)}
           margin="normal"
         >
-          {borrowers.map((borrower) => (
-            <MenuItem key={borrower.id} value={borrower}>
+          {borrowers.map((borrower, index) => (
+            <MenuItem key={borrower.id || index} value={borrower}>
               {borrower.name}
             </MenuItem>
           ))}

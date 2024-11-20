@@ -9,7 +9,7 @@ const columns = [
   { field: "id", headerName: "ID", width: 70 },
   { field: "title", headerName: "Title", width: 300 },
   { field: "author", headerName: "Author", width: 150 },
-  { field: "genre", headerName: "Genre", width: 130 },
+  { field: "categories", headerName: "Category", width: 130 },
   { field: "year", headerName: "Year", width: 100 },
   { field: "status", headerName: "Status", width: 100 },
 ];
@@ -22,7 +22,8 @@ export default function DisplayBooks() {
   useEffect(() => {
     const loadBooks = async () => {
       const books = await fetchBooks();
-      setRows(books);
+      console.log("Fetched Books:", books);
+      setRows(books); // Set the fetched books to rows
     };
     loadBooks();
   }, []);
@@ -67,6 +68,7 @@ export default function DisplayBooks() {
         <DataGrid
           rows={rows}
           columns={columns}
+          getRowId={(row) => row._id}
           initialState={{ pagination: { paginationModel } }}
           pageSizeOptions={[5, 10]}
           checkboxSelection={false}

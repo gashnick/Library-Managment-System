@@ -2,16 +2,14 @@
 
 export const fetchBooks = async () => {
   try {
-    const response = await fetch("/book.json");
+    const response = await fetch("http://localhost:3000/api/book/books");
+    if (!response.ok) {
+      console.error("Failed to fetch books:", response.statusText);
+      return [];
+    }
     const data = await response.json();
-    return data.response.books.map((book, index) => ({
-      id: book.id || index,
-      title: book.title || "N/A",
-      author: book.author || "Unknown",
-      genre: book.categories || "General",
-      year: book.year || "N/A",
-      status: book.status,
-    }));
+    console.log("Fetched Books Data: ", data); // Log the full response
+    return data.books || []; // Assuming books are in the 'books' key
   } catch (error) {
     console.error("Error fetching books:", error);
     return [];

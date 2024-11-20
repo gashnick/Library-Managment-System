@@ -17,10 +17,10 @@ const createBook = async (req, res, next) => {
 // Get all books
 const getAllBooks = async (req, res, next) => {
   try {
-    const books = await Book.find();
-    res.status(200).json({ success: true, books }); // Ensures the response has `books`
+    const data = await Book.find(); // Fetch all books from the database
+    res.json({ books: data }); // Return books inside a 'books' key
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: "Error fetching books", error });
   }
 };
 
