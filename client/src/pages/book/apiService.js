@@ -29,3 +29,35 @@ export const fetchBorrowers = async () => {
     return [];
   }
 };
+
+// apiService.js (or wherever you manage API calls)
+export const updateBookStatus = async (book) => {
+  try {
+    const response = await axios.put(
+      `http://localhost:3000/api/book/status/${book._id}`,
+      {
+        status: "Borrowed", // Set the new status
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error updating book status:", err);
+    throw new Error("Failed to update book status.");
+  }
+};
+
+export const deleteBook = async (id) => {
+  try {
+    const response = await axios.delete(
+      `http://localhost:3000/api/book/delete/${id}`
+    );
+    if (response.status >= 200 && response.status < 300) {
+      return response.data;
+    } else {
+      throw new Error(`Failed to delete book (status: ${response.status})`);
+    }
+  } catch (error) {
+    console.error("Error deleting book:", error);
+    throw error; // Re-throw the error for further handling in the calling function
+  }
+};
