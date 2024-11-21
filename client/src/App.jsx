@@ -14,6 +14,7 @@ import Borrowers from "./pages/borrowers/Borrowers";
 import BorrowedBooks from "./pages/borrowers/BorrowedBooks";
 import ReturnedBooks from "./pages/borrowers/ReturnedBooks";
 import History from "./pages/borrowers/History";
+import EditBook from "./pages/book/EditBook";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="borrowed" element={<BorrowedBooks />} />
           <Route path="returned" element={<ReturnedBooks />} />
           <Route path="history" element={<History />} />
+          <Route path="edit-book/:id" element={<EditBook />} />
         </Route>
       </Routes>
     </BrowserRouter>

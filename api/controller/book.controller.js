@@ -46,19 +46,20 @@ const updateBookStatus = async (req, res, next) => {
 // Edit a book by ID
 const updateBook = async (req, res, next) => {
   const { id } = req.params;
-  const { title, author, genre, year, status } = req.body;
+  const updates = req.body; // We get all the properties to update from the request body
 
   try {
     const updatedBook = await Book.findByIdAndUpdate(
       id,
-      { title, author, genre, year, status },
-      { new: true, runValidators: true }
+      updates, // Pass the whole request body for updating
+      { new: true, runValidators: true } // Ensure updated book is returned and run validation
     );
 
     if (!updatedBook) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Book not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Book not found",
+      });
     }
 
     res.status(200).json({
@@ -67,7 +68,7 @@ const updateBook = async (req, res, next) => {
       book: updatedBook,
     });
   } catch (error) {
-    next(error);
+    next(error); // Pass the error to the next middleware
   }
 };
 
@@ -85,6 +86,20 @@ const deleteBook = async (req, res, next) => {
     res.status(500).json({ message: "Error deletind a book" });
   }
 };
+const bookId = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const book = await Book.findById(id);
+    if (!book) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Book not found" });
+    }
+    res.status(200).json({ success: true, book });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 module.exports = {
   createBook,
@@ -92,4 +107,5 @@ module.exports = {
   updateBook,
   deleteBook,
   updateBookStatus,
+  bookId,
 };

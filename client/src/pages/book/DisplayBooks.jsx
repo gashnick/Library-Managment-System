@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -9,7 +10,7 @@ import Paper from "@mui/material/Paper";
 import TablePagination from "@mui/material/TablePagination";
 import Button from "@mui/material/Button";
 import { fetchBooks, deleteBook } from "./apiService"; // Adjust path to match your structure
-import BookComponent from "../borrowers/BookComponent"; // Import the BookComponent
+import BookComponent from "../borrowers/BookComponent";
 
 export default function DisplayBooks() {
   const [books, setBooks] = useState([]);
@@ -17,6 +18,7 @@ export default function DisplayBooks() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [selectedBook, setSelectedBook] = useState(null); // To keep track of the selected book for borrowing
   const [openModal, setOpenModal] = useState(false); // To control the modal visibility
+  const navigate = useNavigate(); // Initialize useNavigate hook
 
   useEffect(() => {
     const getBooks = async () => {
@@ -43,9 +45,8 @@ export default function DisplayBooks() {
 
   const handleEdit = (book) => {
     console.log("Edit book:", book);
-    // Add your edit logic here
+    navigate(`/dashboard/edit-book/${book._id}`); // Programmatically navigate to the edit page
   };
-
   const handleDelete = async (book) => {
     try {
       console.log("Deleting book with ID:", book._id);
@@ -66,24 +67,6 @@ export default function DisplayBooks() {
   const handleBorrow = (book) => {
     setSelectedBook(book); // Set the selected book
     setOpenModal(true); // Open the modal when the Borrow button is clicked
-  };
-
-  const handleBookBorrowed = (borrowedBook) => {
-    if (!borrowedBook) {
-      console.error("No borrowed book data received");
-      return;
-    }
-
-    // Log the borrowed book to verify its data
-    console.log("Borrowed Book:", borrowedBook);
-
-    // Optimistic update for borrowed book status
-    setBooks((prevBooks) =>
-      prevBooks.map((b) =>
-        b._id === borrowedBook._id ? { ...b, status: "Borrowed" } : b
-      )
-    );
-    setOpenModal(false); // Close the modal after borrowing
   };
 
   return (
@@ -121,7 +104,7 @@ export default function DisplayBooks() {
                         variant="contained"
                         color="primary"
                         size="small"
-                        onClick={() => handleEdit(book)}
+                        onClick={() => handleEdit(book)} // Trigger edit action
                       >
                         Edit
                       </Button>
@@ -169,7 +152,7 @@ export default function DisplayBooks() {
       {selectedBook && openModal && (
         <BookComponent
           book={selectedBook}
-          onBorrow={handleBookBorrowed} // Pass the optimized borrowing handler
+          onBorrow={() => handleBookBorrowed(selectedBook)} // Borrow handler
         />
       )}
     </div>
