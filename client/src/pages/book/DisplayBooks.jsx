@@ -9,11 +9,14 @@ import Paper from "@mui/material/Paper";
 import TablePagination from "@mui/material/TablePagination";
 import Button from "@mui/material/Button";
 import { fetchBooks, deleteBook } from "./apiService"; // Adjust path to match your structure
+import BookComponent from "../borrowers/BookComponent"; // Import the BookComponent
 
 export default function DisplayBooks() {
   const [books, setBooks] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [selectedBook, setSelectedBook] = useState(null); // To keep track of the selected book for borrowing
+  const [openModal, setOpenModal] = useState(false); // To control the modal visibility
 
   useEffect(() => {
     const getBooks = async () => {
@@ -53,98 +56,122 @@ export default function DisplayBooks() {
       await deleteBook(book._id);
 
       // Server-side confirmation
-      // ... (code to check server response)
-
       alert("Book deleted successfully");
     } catch (error) {
       console.error("Error deleting book:", error);
-      // Revert optimistic update if necessary
-      // ... (code to restore the deleted book to the UI)
       alert("Failed to delete book. Please try again later.");
     }
   };
 
   const handleBorrow = (book) => {
-    console.log("Render book:", book);
-    // Add your render logic here
+    setSelectedBook(book); // Set the selected book
+    setOpenModal(true); // Open the modal when the Borrow button is clicked
+  };
+
+  const handleBookBorrowed = (borrowedBook) => {
+    if (!borrowedBook) {
+      console.error("No borrowed book data received");
+      return;
+    }
+
+    // Log the borrowed book to verify its data
+    console.log("Borrowed Book:", borrowedBook);
+
+    // Optimistic update for borrowed book status
+    setBooks((prevBooks) =>
+      prevBooks.map((b) =>
+        b._id === borrowedBook._id ? { ...b, status: "Borrowed" } : b
+      )
+    );
+    setOpenModal(false); // Close the modal after borrowing
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="books table">
-        <TableHead>
-          <TableRow>
-            <TableCell>Title</TableCell>
-            <TableCell align="right">Author</TableCell>
-            <TableCell align="right">Year</TableCell>
-            <TableCell align="right">Pages</TableCell>
-            <TableCell align="right">Status</TableCell>
-            <TableCell align="center">Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {paginatedBooks.length > 0 ? (
-            paginatedBooks.map((book) => (
-              <TableRow key={book._id}>
-                <TableCell>{book.title}</TableCell>
-                <TableCell align="right">{book.author}</TableCell>
-                <TableCell align="right">{book.year}</TableCell>
-                <TableCell align="right">{book.pages}</TableCell>
-                <TableCell align="right">{book.status}</TableCell>
-                <TableCell align="center">
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      size="small"
-                      onClick={() => handleEdit(book)}
+    <div>
+      <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 650 }} aria-label="books table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Title</TableCell>
+              <TableCell align="right">Author</TableCell>
+              <TableCell align="right">Year</TableCell>
+              <TableCell align="right">Pages</TableCell>
+              <TableCell align="right">Status</TableCell>
+              <TableCell align="center">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {paginatedBooks.length > 0 ? (
+              paginatedBooks.map((book) => (
+                <TableRow key={book._id}>
+                  <TableCell>{book.title}</TableCell>
+                  <TableCell align="right">{book.author}</TableCell>
+                  <TableCell align="right">{book.year}</TableCell>
+                  <TableCell align="right">{book.pages}</TableCell>
+                  <TableCell align="right">{book.status}</TableCell>
+                  <TableCell align="center">
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        gap: "8px",
+                      }}
                     >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      size="small"
-                      onClick={() => handleDelete(book)}
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="success"
-                      size="small"
-                      onClick={() => handleBorrow(book)}
-                    >
-                      Borrow
-                    </Button>
-                  </div>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        onClick={() => handleEdit(book)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        size="small"
+                        onClick={() => handleDelete(book)}
+                      >
+                        Delete
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="success"
+                        size="small"
+                        onClick={() => handleBorrow(book)} // When clicked, it will open the modal
+                      >
+                        Borrow
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  No books available
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={6} align="center">
-                No books available
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-      <TablePagination
-        component="div"
-        count={books.length}
-        page={page}
-        onPageChange={handleChangePage}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        rowsPerPageOptions={[5, 10, 25]}
-      />
-    </TableContainer>
+            )}
+          </TableBody>
+        </Table>
+        <TablePagination
+          component="div"
+          count={books.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[5, 10, 25]}
+        />
+      </TableContainer>
+
+      {/* BookComponent Modal will appear here when a book is selected for borrowing */}
+      {selectedBook && openModal && (
+        <BookComponent
+          book={selectedBook}
+          onBorrow={handleBookBorrowed} // Pass the optimized borrowing handler
+        />
+      )}
+    </div>
   );
 }
