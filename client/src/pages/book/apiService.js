@@ -1,24 +1,22 @@
 // apiService.js
 
+import axios from "axios";
 export const fetchBooks = async () => {
   try {
-    const response = await fetch("http://localhost:3000/api/book/books");
-    if (!response.ok) {
-      console.error("Failed to fetch books:", response.statusText);
-      return [];
-    }
-    const data = await response.json();
-    console.log("Fetched Books Data: ", data); // Log the full response
-    return data.books || []; // Assuming books are in the 'books' key
-  } catch (error) {
-    console.error("Error fetching books:", error);
-    return [];
+    const response = await axios.get("http://localhost:3000/api/book/books");
+    console.log("API response:", response.data); // Log the response for debugging
+    return response.data; // Assuming the API already returns the array of books
+  } catch (err) {
+    console.error("Error fetching books:", err);
+    return []; // Return an empty array on error
   }
 };
 
 export const fetchBorrowers = async () => {
   try {
-    const response = await fetch("/api/borrower/borrowers");
+    const response = await fetch(
+      "http://localhost:3000/api/borrower/borrowers"
+    );
     const data = await response.json();
     if (data.success && Array.isArray(data.borrowers)) {
       return data.borrowers;

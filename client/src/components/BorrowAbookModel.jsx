@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "@mui/material/Modal";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -16,7 +16,7 @@ const modalStyle = {
   p: 4,
 };
 
-export default function BorrowAbookModel({
+export default function BorrowAbookModal({
   open,
   onClose,
   books,
@@ -26,49 +26,57 @@ export default function BorrowAbookModel({
   const [selectedBook, setSelectedBook] = useState("");
   const [selectedBorrower, setSelectedBorrower] = useState("");
 
+  useEffect(() => {
+    if (books && books.length > 0 && !selectedBook) {
+      setSelectedBook(books[0].id);
+    }
+    if (borrowers && borrowers.length > 0 && !selectedBorrower) {
+      setSelectedBorrower(borrowers[0].id);
+    }
+  }, [books, borrowers, selectedBook, selectedBorrower]);
+
   const handleBorrow = async () => {
-    if (selectedBook && selectedBorrower) {
+    const book = books.find((b) => b.id === selectedBook);
+    const borrower = borrowers.find((b) => b.id === selectedBorrower);
+
+    if (book && borrower) {
       const borrowedBookData = {
-        title: selectedBook.title,
-        author: selectedBook.author,
-        genre: selectedBook.genre,
-        year: selectedBook.year,
-        borrowerName: selectedBorrower.name,
+        title: book.title,
+        author: book.author,
+        genre: book.genre,
+        year: book.year,
+        borrowerName: borrower.name,
         borrowDate: new Date().toISOString(),
       };
 
       try {
-        // Step 1: Save the borrowed book in the database
-        const response = await fetch("/api/borrowedbooks/addborrowed", {
+        // Save borrowed book
+        const saveResponse = await fetch("/api/borrowedbooks/addborrowed", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(borrowedBookData),
         });
 
-        if (response.ok) {
-          console.log("Borrowed book saved successfully.");
+        if (!saveResponse.ok) throw new Error("Failed to save borrowed book.");
 
-          // Step 2: Update the book status in book.json
-          await fetch("http://localhost:3000/api/status/update-status", {
+        // Update book status
+        const statusResponse = await fetch(
+          "http://localhost:3000/api/status/update-status",
+          {
             method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ bookId: selectedBook.id }),
-          });
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ bookId: book.id, status: "Borrowed" }),
+          }
+        );
 
-          console.log("Book status updated in book.json");
+        if (!statusResponse.ok)
+          throw new Error("Failed to update book status.");
 
-          // Call onBorrow with selectedBook and selectedBorrower
-          onBorrow(selectedBook, selectedBorrower); // Pass selected book and borrower
-          onClose(); // Close the modal after successful borrowing
-        } else {
-          console.error("Failed to save borrowed book.");
-        }
+        // Trigger parent callback and close modal
+        onBorrow(book, borrower);
+        onClose();
       } catch (error) {
-        console.error("Error:", error);
+        console.error("Error handling borrow:", error.message);
       }
     }
   };
@@ -78,7 +86,7 @@ export default function BorrowAbookModel({
       <Box sx={modalStyle}>
         <h2 id="borrow-book-modal-title">Borrow a Book</h2>
 
-        {/* Book selection with unique key */}
+        {/* Book selection dropdown */}
         <TextField
           select
           label="Select Book"
@@ -87,14 +95,14 @@ export default function BorrowAbookModel({
           onChange={(e) => setSelectedBook(e.target.value)}
           margin="normal"
         >
-          {books.map((book, index) => (
-            <MenuItem key={book.id || index} value={book}>
-              {book.title}
+          {books.map((book) => (
+            <MenuItem key={book.id} value={book.id}>
+              {book.title || "Unknown Title"}
             </MenuItem>
           ))}
         </TextField>
 
-        {/* Borrower selection with unique key */}
+        {/* Borrower selection dropdown */}
         <TextField
           select
           label="Select Borrower"
@@ -103,13 +111,14 @@ export default function BorrowAbookModel({
           onChange={(e) => setSelectedBorrower(e.target.value)}
           margin="normal"
         >
-          {borrowers.map((borrower, index) => (
-            <MenuItem key={borrower.id || index} value={borrower}>
-              {borrower.name}
+          {borrowers.map((borrower) => (
+            <MenuItem key={borrower.id} value={borrower.id}>
+              {borrower.name || "Unknown Borrower"}
             </MenuItem>
           ))}
         </TextField>
 
+        {/* Confirm Borrow Button */}
         <Button
           variant="contained"
           color="primary"

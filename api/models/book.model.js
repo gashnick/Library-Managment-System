@@ -1,22 +1,25 @@
 const mongoose = require("mongoose");
 
 const bookSchema = new mongoose.Schema({
-  id: String,
-  title: String,
-  author: String,
-  categories: String,
-  year: String,
-  edition: String,
+  title: {
+    type: String,
+    required: true,
+    unique: true, // Ensures no duplicate book titles
+  },
+  author: {
+    type: String,
+    required: true,
+  },
+  country: String,
+  imageLink: String,
   language: String,
-  extension: String,
-  pages: String,
-  filesize: String,
-  url: String,
-  cover: String,
+  link: String,
+  pages: Number,
+  year: Number,
   status: {
     type: String,
-    enum: ["Available", "Borrowed"],
-    default: "Available",
+    required: true,
+    default: "Available", // Sets default status to "Available"
   },
 });
 

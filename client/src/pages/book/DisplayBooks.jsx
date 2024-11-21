@@ -1,88 +1,91 @@
 import React, { useEffect, useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import { Link } from "react-router-dom";
-import { fetchBooks, fetchBorrowers } from "./apiService";
-import BorrowAbookModel from "../../components/BorrowAbookModel";
-
-const columns = [
-  { field: "id", headerName: "ID", width: 70 },
-  { field: "title", headerName: "Title", width: 300 },
-  { field: "author", headerName: "Author", width: 150 },
-  { field: "categories", headerName: "Category", width: 130 },
-  { field: "year", headerName: "Year", width: 100 },
-  { field: "status", headerName: "Status", width: 100 },
-];
+import TablePagination from "@mui/material/TablePagination";
+import { fetchBooks } from "./apiService"; // Adjust the path to match your project structure
 
 export default function DisplayBooks() {
-  const [rows, setRows] = useState([]);
-  const [borrowers, setBorrowers] = useState([]);
-  const [openModal, setOpenModal] = useState(false);
+  const [books, setBooks] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5); // Default rows per page
 
   useEffect(() => {
-    const loadBooks = async () => {
-      const books = await fetchBooks();
-      console.log("Fetched Books:", books);
-      setRows(books); // Set the fetched books to rows
+    const getBooks = async () => {
+      const fetchedBooks = await fetchBooks();
+      console.log("Fetched books:", fetchedBooks); // Log fetched books for debugging
+      setBooks(fetchedBooks);
     };
-    loadBooks();
+
+    getBooks();
   }, []);
 
-  useEffect(() => {
-    const loadBorrowers = async () => {
-      const fetchedBorrowers = await fetchBorrowers();
-      setBorrowers(fetchedBorrowers);
-    };
-    loadBorrowers();
-  }, []);
-
-  const handleBorrow = (borrowedBook, selectedBorrower) => {
-    const updatedBooks = rows.map((book) =>
-      book.id === borrowedBook.id ? { ...book, status: "Borrowed" } : book
-    );
-    setRows(updatedBooks);
+  // Handle page change
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
   };
 
-  const paginationModel = { page: 0, pageSize: 5 };
+  // Handle rows per page change
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset to first page
+  };
+
+  // Calculate books to display on the current page
+  const paginatedBooks = books.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   return (
-    <div>
-      <div className="flex justify-between">
-        <h1 className="text-3xl font-semibold mb-5">ALL BOOKS</h1>
-        <span>
-          <Link to={"/dashboard/create"}>
-            <button className="rounded-lg p-3 text-white bg-slate-700">
-              Create a new book
-            </button>
-          </Link>
-        </span>
-        <button
-          onClick={() => setOpenModal(true)}
-          className="rounded-lg p-2 mb-2 text-white bg-green-700"
-        >
-          Borrow A Book
-        </button>
-      </div>
-
-      <Paper sx={{ height: 400, width: "100%" }}>
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          getRowId={(row) => row._id}
-          initialState={{ pagination: { paginationModel } }}
-          pageSizeOptions={[5, 10]}
-          checkboxSelection={false}
-          sx={{ border: 0 }}
-        />
-      </Paper>
-
-      <BorrowAbookModel
-        open={openModal}
-        onClose={() => setOpenModal(false)}
-        books={rows}
-        borrowers={borrowers}
-        onBorrow={handleBorrow}
+    <>
+      <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 650 }} aria-label="books table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Title</TableCell>
+              <TableCell align="right">Author</TableCell>
+              <TableCell align="right">Year</TableCell>
+              <TableCell align="right">Pages</TableCell>
+              <TableCell align="right">Status</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {paginatedBooks.length > 0 ? (
+              paginatedBooks.map((book) => (
+                <TableRow key={book._id}>
+                  <TableCell component="th" scope="row">
+                    {book.title}
+                  </TableCell>
+                  <TableCell align="right">{book.author}</TableCell>
+                  <TableCell align="right">{book.year}</TableCell>
+                  <TableCell align="right">{book.pages}</TableCell>
+                  <TableCell align="right">{book.status}</TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  No books available
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        component="div"
+        count={books.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        rowsPerPageOptions={[5, 10, 25]} // Options for rows per page
       />
-    </div>
+    </>
   );
 }
