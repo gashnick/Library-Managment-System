@@ -54,62 +54,39 @@ const getBorrowedBook = async (req, res, next) => {
 
 const returnBook = async (req, res, next) => {
   try {
-    const { title, author, year, borrowerName, returnDate } = req.body;
+    const { id } = req.params;
+    const { returnDate } = req.body;
 
-    // Find the borrowed book to update its status
-    const borrowedBook = await BorrowedBook.findOne({
-      title,
-      author,
-      year,
-      status: "Borrowed",
-    });
+    // Fetch the borrowed book
+    const borrowedBook = await BorrowedBook.findById(id);
 
-    if (!borrowedBook) {
-      return res.status(404).json({ message: "Borrowed book not found" });
+    if (!borrowedBook || borrowedBook.status !== "Borrowed") {
+      return res
+        .status(404)
+        .json({ message: "Borrowed book not found or already returned" });
     }
 
-    // Update the borrowed book's status to 'Returned' and set return details
+    // Update borrowed book status
     borrowedBook.status = "Returned";
-    borrowedBook.returnDate = returnDate;
+    borrowedBook.returnDate = returnDate || new Date();
     await borrowedBook.save();
 
-    // Find the main book in the catalog to mark it as 'Available'
-    const book = await Book.findOne({ title, author, year });
-
-    if (!book) {
-      return res.status(404).json({ message: "Book not found in catalog" });
-    }
-
-    // Update the main book's status to 'Available'
-    book.status = "Available";
-    await book.save();
-
-    // Create a new record in the 'ReturnedBooks' collection for history tracking
+    // Create a returned book entry
     const returnedBook = new ReturnedBook({
-      title: book.title,
-      author: book.author,
-      genre: book.genre,
-      year: book.year,
-      borrowerName,
-      returnDate,
-      status: "Returned", // Explicitly include the 'Returned' status here
+      title: borrowedBook.title,
+      author: borrowedBook.author,
+      genre: borrowedBook.genre,
+      year: borrowedBook.year,
+      status: "Returned",
+      borrowerName: borrowedBook.borrowerName,
+      returnDate: borrowedBook.returnDate,
     });
 
     await returnedBook.save();
 
-    // Respond with the returned book details
-    res.status(200).json({
-      message: "Book returned successfully",
-      returnedBook: {
-        title: returnedBook.title,
-        author: returnedBook.author,
-        genre: returnedBook.genre,
-        year: returnedBook.year,
-        borrowerName: returnedBook.borrowerName,
-        returnDate: returnedBook.returnDate,
-        status: returnedBook.status, // Include the returned status explicitly
-      },
-    });
+    res
+      .status(200)
+      .json({ message: "Book returned successfully", returnedBook });
   } catch (error) {
     next(error);
   }
@@ -117,12 +94,13 @@ const returnBook = async (req, res, next) => {
 
 const returnedBooks = async (req, res, next) => {
   try {
-    const retruned = await ReturnedBook.find();
-    res.json(retruned);
+    const returned = await ReturnedBook.find(); // Corrected the typo here
+    res.json(returned);
   } catch (error) {
     next(error);
   }
 };
+
 module.exports = {
   addBorrowedBook,
   getBorrowedBook,

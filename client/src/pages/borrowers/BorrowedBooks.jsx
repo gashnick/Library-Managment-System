@@ -9,13 +9,12 @@ export default function BorrowedBooks() {
   // Handle returning a borrowed book
   const handleReturn = async (bookId) => {
     try {
-      // Send the return request to the backend
       const response = await fetch(
         `http://localhost:3000/api/borrowedbooks/return/${bookId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ returnDate: new Date().toISOString() }), // Optional: Include returnDate
+          body: JSON.stringify({ returnDate: new Date().toISOString() }), // Include returnDate
         }
       );
 
@@ -23,29 +22,25 @@ export default function BorrowedBooks() {
         const updatedBook = await response.json(); // Get the updated book data
         console.log("Book returned successfully:", updatedBook);
 
-        // Batch state updates to avoid redundant renders
-        setBorrowedBooks((prevBooks) =>
-          prevBooks.filter((book) => book._id !== bookId)
+        // Update the state
+        setBorrowedBooks(
+          (prevBooks) => prevBooks.filter((book) => book._id !== bookId) // Remove from borrowed books
         );
         setBooks((prevBooks) =>
           prevBooks.map((book) =>
             book._id === bookId
-              ? { ...book, status: "Available" } // Update book status
+              ? { ...book, status: "Available" } // Mark as available
               : book
           )
         );
       } else {
-        // Handle error responses
         const errorData = await response.json();
-        console.error(
-          "Failed to return book:",
-          errorData.message || response.statusText
-        );
-        alert(`Error: ${errorData.message || "Failed to return book"}`);
+        console.error("Failed to return book:", errorData.message);
+        alert(`Error: ${errorData.message}`);
       }
     } catch (error) {
       console.error("Error returning book:", error.message || error);
-      alert("An unexpected error occurred while returning the book.");
+      alert("An unexpected error occurred.");
     }
   };
 

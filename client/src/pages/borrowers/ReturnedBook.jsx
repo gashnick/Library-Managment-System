@@ -3,9 +3,9 @@ import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 
 export default function ReturnedBook() {
-  const [ReturnedBooks, setReturnedBooks] = useState([]);
+  const [returnedBooks, setReturnedBooks] = useState([]);
 
-  // Fetch borrowed books
+  // Fetch returned books
   useEffect(() => {
     const fetchReturnedBooks = async () => {
       try {
@@ -16,10 +16,10 @@ export default function ReturnedBook() {
           const data = await response.json();
           setReturnedBooks(data);
         } else {
-          console.error("Failed to fetch borrowed books:", response.statusText);
+          console.error("Failed to fetch returned books:", response.statusText);
         }
       } catch (error) {
-        console.error("Error fetching borrowed books:", error);
+        console.error("Error fetching returned books:", error);
       }
     };
     fetchReturnedBooks();
@@ -32,7 +32,7 @@ export default function ReturnedBook() {
     { field: "genre", headerName: "Genre", width: 130 },
     { field: "year", headerName: "Year", width: 100 },
     { field: "borrowerName", headerName: "Borrower Name", width: 150 },
-    { field: "ReturnDate", headerName: "Return Date", width: 130 },
+    { field: "returnDate", headerName: "Return Date", width: 130 }, // Ensure correct field name
     { field: "status", headerName: "Status", width: 100 },
   ];
 
@@ -40,16 +40,20 @@ export default function ReturnedBook() {
     <div>
       <h2 className="text-3xl font-semibold mb-5">Returned Books</h2>
       <Paper sx={{ height: 400, width: "100%" }}>
-        <DataGrid
-          rows={ReturnedBooks.map((book, index) => ({
-            ...book,
-            id: book._id || index, // Use MongoDB _id as unique id
-          }))}
-          columns={columns}
-          pageSizeOptions={[5, 10]}
-          checkboxSelection={false}
-          sx={{ border: 0 }}
-        />
+        {returnedBooks.length === 0 ? (
+          <p>No returned books available.</p>
+        ) : (
+          <DataGrid
+            rows={returnedBooks.map((book, index) => ({
+              ...book,
+              id: book._id || index, // Use MongoDB _id or fallback to index
+            }))}
+            columns={columns}
+            pageSizeOptions={[5, 10]}
+            checkboxSelection={false}
+            sx={{ border: 0 }}
+          />
+        )}
       </Paper>
     </div>
   );

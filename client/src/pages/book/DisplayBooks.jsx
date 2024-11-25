@@ -11,6 +11,7 @@ import TablePagination from "@mui/material/TablePagination";
 import Button from "@mui/material/Button";
 import { fetchBooks, deleteBook } from "./apiService"; // Adjust path to match your structure
 import BookComponent from "../borrowers/BookComponent";
+import BookStats from "../../components/BookStats";
 
 export default function DisplayBooks() {
   const [books, setBooks] = useState([]);
@@ -79,6 +80,9 @@ export default function DisplayBooks() {
 
   return (
     <div>
+      <div className="mb-2 justify-center items-center">
+        <BookStats />
+      </div>
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="books table">
           <TableHead>

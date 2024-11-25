@@ -43,7 +43,7 @@ export default function BookStats() {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div className="bg-gray-100 ">
       <div className="bg-white shadow-lg p-6 rounded-lg flex flex-col justify-between items-center">
         <h3 className="text-xl font-semibold text-gray-700 mb-4">
           Library Status
