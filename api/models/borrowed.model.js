@@ -7,6 +7,7 @@ const borrowedBookSchema = new mongoose.Schema({
   genre: String,
   year: Number,
   borrowerName: String,
+  status: String,
   borrowDate: { type: Date, default: Date.now },
 });
 

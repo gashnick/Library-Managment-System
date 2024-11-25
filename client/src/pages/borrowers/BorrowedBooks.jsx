@@ -4,27 +4,48 @@ import Paper from "@mui/material/Paper";
 
 export default function BorrowedBooks() {
   const [borrowedBooks, setBorrowedBooks] = useState([]);
+  const [books, setBooks] = useState([]); // Initialize the books state
 
   // Handle returning a borrowed book
   const handleReturn = async (bookId) => {
     try {
+      // Send the return request to the backend
       const response = await fetch(
         `http://localhost:3000/api/borrowedbooks/return/${bookId}`,
         {
-          method: "PUT",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ returnDate: new Date().toISOString() }), // Optional: Include returnDate
         }
       );
-      console.log(response);
+
       if (response.ok) {
-        console.log("Book returned successfully");
+        const updatedBook = await response.json(); // Get the updated book data
+        console.log("Book returned successfully:", updatedBook);
+
+        // Batch state updates to avoid redundant renders
         setBorrowedBooks((prevBooks) =>
           prevBooks.filter((book) => book._id !== bookId)
         );
+        setBooks((prevBooks) =>
+          prevBooks.map((book) =>
+            book._id === bookId
+              ? { ...book, status: "Available" } // Update book status
+              : book
+          )
+        );
       } else {
-        console.error("Failed to return book:", response.statusText);
+        // Handle error responses
+        const errorData = await response.json();
+        console.error(
+          "Failed to return book:",
+          errorData.message || response.statusText
+        );
+        alert(`Error: ${errorData.message || "Failed to return book"}`);
       }
     } catch (error) {
-      console.error("Error returning book:", error);
+      console.error("Error returning book:", error.message || error);
+      alert("An unexpected error occurred while returning the book.");
     }
   };
 
@@ -54,6 +75,7 @@ export default function BorrowedBooks() {
     { field: "author", headerName: "Author", width: 150 },
     { field: "genre", headerName: "Genre", width: 130 },
     { field: "year", headerName: "Year", width: 100 },
+    { field: "status", headerName: "Status", width: 100 },
     { field: "borrowerName", headerName: "Borrower Name", width: 150 },
     { field: "borrowDate", headerName: "Borrow Date", width: 130 },
     {

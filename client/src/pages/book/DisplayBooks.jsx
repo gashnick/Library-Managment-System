@@ -63,7 +63,15 @@ export default function DisplayBooks() {
       alert("Failed to delete book. Please try again later.");
     }
   };
-
+  const handleBookBorrowed = (borrowedBook) => {
+    // Update the book's status to 'Borrowed' and refresh the state
+    setBooks((prevBooks) =>
+      prevBooks.map((book) =>
+        book._id === borrowedBook._id ? { ...book, status: "Borrowed" } : book
+      )
+    );
+    setOpenModal(false); // Close the modal after borrowing
+  };
   const handleBorrow = (book) => {
     setSelectedBook(book); // Set the selected book
     setOpenModal(true); // Open the modal when the Borrow button is clicked
