@@ -15,6 +15,7 @@ import BorrowedBooks from "./pages/borrowers/BorrowedBooks";
 import History from "./pages/borrowers/History";
 import EditBook from "./pages/book/EditBook";
 import ReturnedBook from "./pages/borrowers/ReturnedBook";
+import BorrowForm from "./components/BorrowForm";
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="returned" element={<ReturnedBook />} />
           <Route path="history" element={<History />} />
           <Route path="edit-book/:id" element={<EditBook />} />
+          <Route path="borrow" element={<BorrowForm />} />
         </Route>
       </Routes>
     </BrowserRouter>

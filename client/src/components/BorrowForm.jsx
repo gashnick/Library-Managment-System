@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchBorrowers } from "../book/apiService";
+import { fetchBorrowers } from "../pages/book/apiService";
 import axios from "axios";
 
 export default function BorrowForm() {
@@ -10,18 +10,36 @@ export default function BorrowForm() {
   const [selectedBorrower, setSelectedBorrower] = useState(""); // Selected borrower ID
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [fetchingBooks, setFetchingBooks] = useState(true); // For loading state
   const navigate = useNavigate();
 
+  // Fetch books and borrowers on component mount
   useEffect(() => {
     // Fetch all books
     axios
       .get(`http://localhost:3000/api/book/books`)
       .then((res) => {
-        setBooks(res.data.books);
+        if (res.data && Array.isArray(res.data)) {
+          // Filter out books that are already borrowed
+          const availableBooks = res.data.filter(
+            (book) => book.status !== "Borrowed"
+          );
+          setBooks(availableBooks); // Only set books that are available
+        } else if (res.data.books && Array.isArray(res.data.books)) {
+          const availableBooks = res.data.books.filter(
+            (book) => book.status !== "Borrowed"
+          );
+          setBooks(availableBooks); // Only set books that are available
+        } else {
+          console.error("Unexpected response format:", res.data);
+          setBooks([]); // Fallback to an empty array
+        }
+        setFetchingBooks(false); // Stop the loading state
       })
       .catch((err) => {
-        console.log(err);
+        console.error("Failed to fetch books:", err);
         setError("Failed to fetch books.");
+        setFetchingBooks(false);
       });
 
     // Fetch all borrowers
@@ -35,6 +53,7 @@ export default function BorrowForm() {
       });
   }, []);
 
+  // Handle book selection
   const handleBookSelection = (e) => {
     const bookId = e.target.value;
     const isChecked = e.target.checked;
@@ -46,6 +65,7 @@ export default function BorrowForm() {
     );
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (selectedBooks.length === 0) {
@@ -60,25 +80,17 @@ export default function BorrowForm() {
     setLoading(true);
 
     try {
-      // Send selected books and borrower to the server
+      const borrowDate = new Date().toISOString(); // Get the current date in ISO format
       const res = await axios.post(`/api/borrowedbooks/addborrowed`, {
-        bookIds: selectedBooks,
-        borrowerId: selectedBorrower,
+        books: selectedBooks, // Array of selected books
+        borrowerId: selectedBorrower, // ID of the selected borrower
+        borrowDate: borrowDate, // Send the borrow date
       });
       if (!res.data.success) {
         setLoading(false);
         setError(res.data.message);
         return;
       }
-
-      // Update the status of selected books to "Borrowed"
-      const updatedBooks = books.map((book) =>
-        selectedBooks.includes(book._id)
-          ? { ...book, status: "Borrowed" }
-          : book
-      );
-      setBooks(updatedBooks); // Update state with new statuses
-
       setLoading(false);
       setError(null);
       navigate("/dashboard/borrowedbooks"); // Redirect to the borrowed books page
@@ -112,22 +124,27 @@ export default function BorrowForm() {
         {/* Book Selection */}
         <div>
           <h2 className="text-lg font-semibold mb-2">Select Books</h2>
-          <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
-            {books.map((book) => (
-              <label key={book._id} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  value={book._id}
-                  onChange={handleBookSelection}
-                  disabled={book.status === "Borrowed"} // Disable already borrowed books
-                />
-                <span>
-                  {book.title} by {book.author} ({book.year}) -{" "}
-                  {book.status === "Borrowed" ? "Borrowed" : "Available"}
-                </span>
-              </label>
-            ))}
-          </div>
+          {fetchingBooks ? (
+            <p>Loading books...</p>
+          ) : books.length > 0 ? (
+            <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
+              {books.map((book) => (
+                <label key={book._id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    value={book._id}
+                    onChange={handleBookSelection}
+                  />
+                  <span>
+                    {book.title} by {book.author} ({book.year}) -{" "}
+                    <strong>{book.status}</strong>
+                  </span>
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p>No books available.</p>
+          )}
         </div>
 
         {/* Submit Button */}

@@ -9,16 +9,13 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import TablePagination from "@mui/material/TablePagination";
 import Button from "@mui/material/Button";
-import { fetchBooks, deleteBook } from "./apiService"; // Adjust path to match your structure
-import BookComponent from "../borrowers/BookComponent";
+import { fetchBooks, deleteBook } from "../book/apiService"; // Adjust path to match your structure
 import BookStats from "../../components/BookStats";
 
 export default function DisplayBooks() {
   const [books, setBooks] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [selectedBook, setSelectedBook] = useState(null); // To keep track of the selected book for borrowing
-  const [openModal, setOpenModal] = useState(false); // To control the modal visibility
   const navigate = useNavigate(); // Initialize useNavigate hook
 
   useEffect(() => {
@@ -48,6 +45,7 @@ export default function DisplayBooks() {
     console.log("Edit book:", book);
     navigate(`/dashboard/edit-book/${book._id}`); // Programmatically navigate to the edit page
   };
+
   const handleDelete = async (book) => {
     try {
       console.log("Deleting book with ID:", book._id);
@@ -64,18 +62,9 @@ export default function DisplayBooks() {
       alert("Failed to delete book. Please try again later.");
     }
   };
-  const handleBookBorrowed = (borrowedBook) => {
-    // Update the book's status to 'Borrowed' and refresh the state
-    setBooks((prevBooks) =>
-      prevBooks.map((book) =>
-        book._id === borrowedBook._id ? { ...book, status: "Borrowed" } : book
-      )
-    );
-    setOpenModal(false); // Close the modal after borrowing
-  };
-  const handleBorrow = (book) => {
-    setSelectedBook(book); // Set the selected book
-    setOpenModal(true); // Open the modal when the Borrow button is clicked
+
+  const handleBorrow = () => {
+    navigate("/dashboard/borrow"); // Navigate to BorrowForm
   };
 
   return (
@@ -83,6 +72,25 @@ export default function DisplayBooks() {
       <div className="mb-2 justify-center items-center">
         <BookStats />
       </div>
+
+      {/* Borrow Button at the Top */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: "10px",
+        }}
+      >
+        <Button
+          variant="contained"
+          color="success"
+          size="small"
+          onClick={handleBorrow} // Navigate to borrow form
+        >
+          Borrow
+        </Button>
+      </div>
+
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="books table">
           <TableHead>
@@ -128,14 +136,6 @@ export default function DisplayBooks() {
                       >
                         Delete
                       </Button>
-                      <Button
-                        variant="contained"
-                        color="success"
-                        size="small"
-                        onClick={() => handleBorrow(book)} // When clicked, it will open the modal
-                      >
-                        Borrow
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -159,14 +159,6 @@ export default function DisplayBooks() {
           rowsPerPageOptions={[5, 10, 25]}
         />
       </TableContainer>
-
-      {/* BookComponent Modal will appear here when a book is selected for borrowing */}
-      {selectedBook && openModal && (
-        <BookComponent
-          book={selectedBook}
-          onBorrow={() => handleBookBorrowed(selectedBook)} // Borrow handler
-        />
-      )}
     </div>
   );
 }

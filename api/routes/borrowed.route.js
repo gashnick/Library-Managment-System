@@ -1,15 +1,15 @@
 // routes/borrowedBooks.js
 const express = require("express");
 const {
-  addBorrowedBook,
   getBorrowedBook,
   returnBook,
   returnedBooks,
+  addBorrowedBooks,
 } = require("../controller/borrowed.controller");
 const router = express.Router();
 
 // POST endpoint to add a borrowed book
-router.post("/addborrowed", addBorrowedBook);
+router.post("/addborrowed", addBorrowedBooks);
 
 // GET endpoint to retrieve all borrowed books
 router.get("/getborrowed", getBorrowedBook);
