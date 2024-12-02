@@ -35,19 +35,15 @@ const addBorrowedBooks = async (req, res, next) => {
           .json({ message: `Book "${book.title}" is already borrowed.` });
       }
 
-      // Update the book's status to 'Borrowed' and save borrower details
+      // Update the book's status to 'Borrowed'
       book.status = "Borrowed";
-      book.borrowerName = borrowerId; // Make sure you save borrowerId here
+      book.borrowerName = borrowerId; // Use the borrower's ID here
       book.borrowDate = borrowDate; // Save the provided borrowDate
       await book.save();
 
-      // Create a new borrowed book record
+      // Create a new borrowed book record with a reference to the Book
       const borrowedBook = new BorrowedBook({
-        title: book.title,
-        author: book.author,
-        genre: book.genre,
-        year: book.year,
-        status: book.status,
+        bookId: book._id, // Store the book's ID as a reference
         borrowerName: borrowerId, // Use the borrower's ID here
         borrowDate: borrowDate, // Ensure this is saved as a Date
       });
@@ -68,50 +64,44 @@ const addBorrowedBooks = async (req, res, next) => {
 
 const getBorrowedBook = async (req, res, next) => {
   try {
-    const books = await BorrowedBook.find();
-    res.json(books);
+    // Fetch all borrowed books
+    const borrowedBooks = await BorrowedBook.find();
+
+    // Extract bookIds from borrowed books
+    const bookIds = borrowedBooks.map(borrowedBook => borrowedBook.bookId);
+
+    // Fetch the full book details for each bookId
+    const books = await Book.find({ _id: { $in: bookIds } });
+
+    // Merge borrowed book data with corresponding book details
+    const borrowedBooksWithDetails = borrowedBooks.map(borrowedBook => {
+      const bookDetails = books.find(book => book._id.toString() === borrowedBook.bookId.toString());
+      return { ...borrowedBook.toObject(), ...bookDetails.toObject() }; // Merge book details with borrowed book
+    });
+
+    res.json(borrowedBooksWithDetails);
   } catch (error) {
     next(error);
   }
 };
-const updateMainBookStatus = async (bookId) => {
-  try {
-    // Find the main book in the main books table
-    const book = await Book.findById(bookId);
 
-    if (!book) {
-      throw new Error("Book not found");
-    }
-
-    // Update the status of the main book to "Available"
-    book.status = "Available";
-    await book.save();
-
-    return book;
-  } catch (error) {
-    throw error;
-  }
-};
 const returnBook = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { returnDate } = req.body;
+    const { id } = req.params; // BorrowedBook ID
+    const returnDate = new Date(); // Set new return date
 
-    // Fetch the borrowed book
-    const borrowedBook = await BorrowedBook.findById(id);
+    // Step 1: Update BorrowedBook status to "Returned"
+    const borrowedBook = await BorrowedBook.findByIdAndUpdate(
+      id,
+      { status: "Returned" }, // Update status only
+      { new: true }
+    );
 
-    if (!borrowedBook || borrowedBook.status !== "Borrowed") {
-      return res
-        .status(404)
-        .json({ message: "Borrowed book not found or already returned" });
+    if (!borrowedBook) {
+      return res.status(404).json({ message: "Borrowed book not found" });
     }
 
-    // Update borrowed book status
-    borrowedBook.status = "Returned";
-    borrowedBook.returnDate = returnDate || new Date();
-    await borrowedBook.save();
-    const updatedBook = await updateMainBookStatus(borrowedBook._id);
-    // Create a returned book entry
+    // Step 2: Create an entry in the ReturnedBooks collection with the new return date
     const returnedBook = new ReturnedBook({
       title: borrowedBook.title,
       author: borrowedBook.author,
@@ -119,18 +109,35 @@ const returnBook = async (req, res, next) => {
       year: borrowedBook.year,
       status: "Returned",
       borrowerName: borrowedBook.borrowerName,
-      returnDate: borrowedBook.returnDate,
+      returnDate, // Use the new date
     });
 
     await returnedBook.save();
 
-    res
-      .status(200)
-      .json({ message: "Book returned successfully", returnedBook });
+    // Step 3: Update the main Books table status to "Available"
+    const updatedBook = await Book.findByIdAndUpdate(
+      borrowedBook.bookId, // Ensure this exists in BorrowedBook schema
+      { status: "Available" }, // Update status
+      { new: true }
+    );
+
+    if (!updatedBook) {
+      return res.status(404).json({ message: "Main book not found" });
+    }
+
+    // Step 4: Respond with success
+    res.status(200).json({
+      message: "Book returned successfully",
+      updatedBook, // Updated main book
+      returnedBook, // Entry in ReturnedBooks collection with new return date
+    });
   } catch (error) {
+    // Forward error to error-handling middleware
     next(error);
   }
 };
+
+
 
 const returnedBooks = async (req, res, next) => {
   try {

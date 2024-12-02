@@ -11,6 +11,7 @@ export default function BorrowForm() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetchingBooks, setFetchingBooks] = useState(true); // For loading state
+  const [fetchingBorrowers, setFetchingBorrowers] = useState(true); // For loading state of borrowers
   const navigate = useNavigate();
 
   // Fetch books and borrowers on component mount
@@ -46,10 +47,12 @@ export default function BorrowForm() {
     fetchBorrowers()
       .then((data) => {
         setBorrowers(data);
+        setFetchingBorrowers(false); // Stop loading state once borrowers are fetched
       })
       .catch((err) => {
         console.error(err);
         setError("Failed to fetch borrowers.");
+        setFetchingBorrowers(false);
       });
   }, []);
 
@@ -107,18 +110,24 @@ export default function BorrowForm() {
         {/* Borrower Selection */}
         <div>
           <h2 className="text-lg font-semibold mb-2">Select Borrower</h2>
-          <select
-            value={selectedBorrower}
-            onChange={(e) => setSelectedBorrower(e.target.value)}
-            className="w-full p-2 border rounded-lg"
-          >
-            <option value="">-- Select a Borrower --</option>
-            {borrowers.map((borrower) => (
-              <option key={borrower._id} value={borrower._id}>
-                {borrower.name}
-              </option>
-            ))}
-          </select>
+          {fetchingBorrowers ? (
+            <p>Loading borrowers...</p>
+          ) : borrowers.length > 0 ? (
+            <select
+              value={selectedBorrower}
+              onChange={(e) => setSelectedBorrower(e.target.value)}
+              className="w-full p-2 border rounded-lg"
+            >
+              <option value="">-- Select a Borrower --</option>
+              {borrowers.map((borrower) => (
+                <option key={borrower._id} value={borrower._id}>
+                  {borrower.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <p>No borrowers available.</p>
+          )}
         </div>
 
         {/* Book Selection */}

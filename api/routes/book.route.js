@@ -13,7 +13,7 @@ router.post("/create", createBook); // Create a new book
 router.get("/books", getAllBooks);
 router.get("/book-id/:id", bookId);
 router.post("/render/:id");
-router.put("/status/:id", updateBookStatus);
+router.patch("/status/:id", updateBookStatus);
 router.put("/update/:id", updateBook);
 router.delete("/delete/:id", deleteBook);
 

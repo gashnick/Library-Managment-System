@@ -25,24 +25,35 @@ const getAllBooks = async (req, res, next) => {
 };
 
 const updateBookStatus = async (req, res, next) => {
-  const { id } = req.params;
-  const { status } = req.body;
+  const { id } = req.params; // Book ID from URL
+  const { status } = req.body; // New status from the request body
 
   try {
+    // Find the book by ID
     const book = await Book.findById(id);
-    if (!book) return res.status(404).json({ message: "Book not found" });
 
+    // If the book doesn't exist, return a 404 error
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    // Update the book's status
     book.status = status;
 
-    const updateBook = await book.save();
+    // Save the updated book to the database
+    const updatedBook = await book.save();
 
-    return res
-      .status(202)
-      .json({ message: "Book status updated successfully", book: updateBook });
+    // Return a success response with the updated book details
+    return res.status(202).json({
+      message: "Book status updated successfully",
+      book: updatedBook,
+    });
   } catch (error) {
-    next(errorHandler(405), "Error updating book status");
+    // Handle unexpected errors gracefully
+    next(error);
   }
 };
+
 // Edit a book by ID
 const updateBook = async (req, res, next) => {
   const { id } = req.params;

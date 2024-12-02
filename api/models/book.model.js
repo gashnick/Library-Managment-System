@@ -4,22 +4,21 @@ const bookSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
-    unique: true, // Ensures no duplicate book titles
   },
   author: {
     type: String,
     required: true,
   },
-  country: String,
-  imageLink: String,
-  language: String,
-  link: String,
-  pages: Number,
-  year: Number,
+  country: { type: String },
+  imageLink: { type: String },
+  language: { type: String },
+  link: { type: String },
+  pages: { type: Number },
+  year: { type: Number },
   status: {
     type: String,
     required: true,
-    default: "Available", // Sets default status to "Available"
+    default: "Available",
   },
 });
 

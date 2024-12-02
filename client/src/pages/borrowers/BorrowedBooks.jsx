@@ -17,15 +17,24 @@ export default function BorrowedBooks() {
           body: JSON.stringify({ returnDate: new Date().toISOString() }), // Include returnDate
         }
       );
-
+  
       if (response.ok) {
-        const updatedBook = await response.json(); // Get the updated book data
-        console.log("Book returned successfully:", updatedBook);
-
-        // Update the state
-        setBorrowedBooks(
-          (prevBooks) => prevBooks.filter((book) => book._id !== bookId) // Remove from borrowed books
+        const { updatedBook, returnedBook } = await response.json(); // Destructure API response
+        console.log("Book returned successfully:", { updatedBook, returnedBook });
+  
+        // Update the BorrowedBooks state
+        setBorrowedBooks((prevBooks) =>
+          prevBooks.filter((book) => book._id !== bookId) // Remove returned book from borrowed list
         );
+  
+        // Call the backend route to update the book's status in the Books collection
+        await fetch(`http://localhost:3000/api/book/status/${bookId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "Available" }),
+        });
+  
+        // Update the local Books state
         setBooks((prevBooks) =>
           prevBooks.map((book) =>
             book._id === bookId
@@ -33,6 +42,9 @@ export default function BorrowedBooks() {
               : book
           )
         );
+  
+        // Optionally, log or display returnedBook details if needed
+        console.log("Returned book entry created:", returnedBook);
       } else {
         const errorData = await response.json();
         console.error("Failed to return book:", errorData.message);
