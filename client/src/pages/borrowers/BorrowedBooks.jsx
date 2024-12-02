@@ -4,7 +4,6 @@ import Paper from "@mui/material/Paper";
 
 export default function BorrowedBooks() {
   const [borrowedBooks, setBorrowedBooks] = useState([]);
-  const [books, setBooks] = useState([]); // Initialize the books state
 
   // Handle returning a borrowed book
   const handleReturn = async (bookId) => {
@@ -17,32 +16,16 @@ export default function BorrowedBooks() {
           body: JSON.stringify({ returnDate: new Date().toISOString() }), // Include returnDate
         }
       );
-  
+
       if (response.ok) {
-        const { updatedBook, returnedBook } = await response.json(); // Destructure API response
-        console.log("Book returned successfully:", { updatedBook, returnedBook });
-  
+        const { returnedBook } = await response.json(); // Destructure API response
+        console.log("Book returned successfully:", returnedBook);
+
         // Update the BorrowedBooks state
         setBorrowedBooks((prevBooks) =>
           prevBooks.filter((book) => book._id !== bookId) // Remove returned book from borrowed list
         );
-  
-        // Call the backend route to update the book's status in the Books collection
-        await fetch(`http://localhost:3000/api/book/status/${bookId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "Available" }),
-        });
-  
-        // Update the local Books state
-        setBooks((prevBooks) =>
-          prevBooks.map((book) =>
-            book._id === bookId
-              ? { ...book, status: "Available" } // Mark as available
-              : book
-          )
-        );
-  
+
         // Optionally, log or display returnedBook details if needed
         console.log("Returned book entry created:", returnedBook);
       } else {
@@ -80,11 +63,15 @@ export default function BorrowedBooks() {
     { field: "id", headerName: "ID", width: 70 },
     { field: "title", headerName: "Title", width: 200 },
     { field: "author", headerName: "Author", width: 150 },
-    { field: "genre", headerName: "Genre", width: 130 },
     { field: "year", headerName: "Year", width: 100 },
     { field: "status", headerName: "Status", width: 100 },
     { field: "borrowerName", headerName: "Borrower Name", width: 150 },
-    { field: "borrowDate", headerName: "Borrow Date", width: 130 },
+    {
+      field: "borrowDate",
+      headerName: "Borrow Date",
+      width: 130,
+      renderCell: (params) => new Date(params.row.borrowDate).toLocaleDateString(), // Format borrow date
+    },
     {
       field: "action",
       headerName: "Action",
@@ -108,9 +95,10 @@ export default function BorrowedBooks() {
           rows={borrowedBooks.map((book, index) => ({
             ...book,
             id: book._id || index, // Use MongoDB _id as unique id
+            borrowDate: book.borrowDate || "", // Fallback for borrowDate if missing
           }))}
           columns={columns}
-          pageSizeOptions={[5, 10]}
+          pageSizeOptions={[5, 10, 100]}
           checkboxSelection={false}
           sx={{ border: 0 }}
         />

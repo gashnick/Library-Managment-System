@@ -1,3 +1,5 @@
+const mongoose = require('mongoose')
+
 const ReturnedBookSchema = new mongoose.Schema({
   bookId: { type: mongoose.Schema.Types.ObjectId, ref: "Book", required: true }, // References the Book collection
   title: { type: String, required: true },

@@ -8,13 +8,15 @@ const addBorrowedBooks = async (req, res, next) => {
     const { books, borrowerId, borrowDate } = req.body;
 
     if (!books || !Array.isArray(books) || books.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "No books selected for borrowing." });
+      return res.status(400).json({ message: "No books selected for borrowing." });
     }
 
     if (!borrowerId) {
       return res.status(400).json({ message: "Borrower ID is required." });
+    }
+
+    if (!borrowDate) {
+      return res.status(400).json({ message: "Borrow date is required." });
     }
 
     const borrowedBooks = []; // Array to store borrowed book records
@@ -24,28 +26,27 @@ const addBorrowedBooks = async (req, res, next) => {
       const book = await Book.findById(bookId);
 
       if (!book) {
-        return res
-          .status(404)
-          .json({ message: `Book with ID ${bookId} not found` });
+        return res.status(404).json({ message: `Book with ID ${bookId} not found` });
       }
 
       if (book.status === "Borrowed") {
-        return res
-          .status(400)
-          .json({ message: `Book "${book.title}" is already borrowed.` });
+        return res.status(400).json({ message: `Book "${book.title}" is already borrowed.` });
       }
 
       // Update the book's status to 'Borrowed'
       book.status = "Borrowed";
-      book.borrowerName = borrowerId; // Use the borrower's ID here
-      book.borrowDate = borrowDate; // Save the provided borrowDate
       await book.save();
 
-      // Create a new borrowed book record with a reference to the Book
+      // Create a new borrowed book record with the necessary book details
       const borrowedBook = new BorrowedBook({
         bookId: book._id, // Store the book's ID as a reference
-        borrowerName: borrowerId, // Use the borrower's ID here
-        borrowDate: borrowDate, // Ensure this is saved as a Date
+        title: book.title, // Pass the book's title
+        author: book.author, // Pass the book's author
+        pages: book.pages, // Pass the number of pages if available
+        status: "Borrowed", // Book status is borrowed
+        borrowDate: borrowDate, // Pass the borrow date from request body
+        borrowerName: borrowerId, // Store borrower information (borrowerId or name)
+        year: book.year, // Pass the book's year
       });
 
       // Save the borrowed book in the borrowed books collection
@@ -54,13 +55,12 @@ const addBorrowedBooks = async (req, res, next) => {
     }
 
     // Return all borrowed book data as the response
-    res
-      .status(201)
-      .json({ message: "Books borrowed successfully", borrowedBooks });
+    res.status(201).json({ message: "Books borrowed successfully", borrowedBooks });
   } catch (error) {
     next(error);
   }
 };
+
 
 const getBorrowedBook = async (req, res, next) => {
   try {
@@ -73,10 +73,28 @@ const getBorrowedBook = async (req, res, next) => {
     // Fetch the full book details for each bookId
     const books = await Book.find({ _id: { $in: bookIds } });
 
+    // Check if books were found
+    if (!books || books.length === 0) {
+      return res.status(404).json({ message: "No books found in the system." });
+    }
+
     // Merge borrowed book data with corresponding book details
     const borrowedBooksWithDetails = borrowedBooks.map(borrowedBook => {
-      const bookDetails = books.find(book => book._id.toString() === borrowedBook.bookId.toString());
-      return { ...borrowedBook.toObject(), ...bookDetails.toObject() }; // Merge book details with borrowed book
+      const bookDetails = books.find(book => {
+        // Check if bookId and _id are defined before comparing
+        if (borrowedBook.bookId && book._id) {
+          return borrowedBook.bookId.toString() === book._id.toString();
+        }
+        return false;
+      });
+
+      if (!bookDetails) {
+        // Handle missing book details, e.g., log an error or return a specific message
+        console.error(`Book details not found for borrowed book ID: ${borrowedBook.bookId}`);
+        return { ...borrowedBook.toObject(), message: "Book details not found" };
+      }
+
+      return { ...borrowedBook.toObject(), ...bookDetails.toObject() };
     });
 
     res.json(borrowedBooksWithDetails);
@@ -85,55 +103,49 @@ const getBorrowedBook = async (req, res, next) => {
   }
 };
 
-const returnBook = async (req, res, next) => {
+
+const returnBook = async (req, res) => {
   try {
-    const { id } = req.params; // BorrowedBook ID
-    const returnDate = new Date(); // Set new return date
-
-    // Step 1: Update BorrowedBook status to "Returned"
-    const borrowedBook = await BorrowedBook.findByIdAndUpdate(
-      id,
-      { status: "Returned" }, // Update status only
-      { new: true }
-    );
-
+    const { bookId } = req.params;
+    const { returnDate } = req.body; // Expecting returnDate in the body
+    
+    // Step 1: Find the borrowed book
+    const borrowedBook = await BorrowedBook.findOne({ _id: bookId });
     if (!borrowedBook) {
-      return res.status(404).json({ message: "Borrowed book not found" });
+      return res.status(404).json({ message: "Borrowed book not found." });
     }
 
-    // Step 2: Create an entry in the ReturnedBooks collection with the new return date
+    // Step 2: Create a returned book entry
     const returnedBook = new ReturnedBook({
+      bookId: borrowedBook.bookId,
       title: borrowedBook.title,
       author: borrowedBook.author,
-      genre: borrowedBook.genre,
-      year: borrowedBook.year,
-      status: "Returned",
       borrowerName: borrowedBook.borrowerName,
-      returnDate, // Use the new date
+      returnDate: returnDate || new Date(),
     });
-
     await returnedBook.save();
 
-    // Step 3: Update the main Books table status to "Available"
-    const updatedBook = await Book.findByIdAndUpdate(
-      borrowedBook.bookId, // Ensure this exists in BorrowedBook schema
-      { status: "Available" }, // Update status
-      { new: true }
-    );
+    // Step 3: Update the borrowed book status to "Returned"
+    borrowedBook.status = 'Returned';
+    borrowedBook.returnDate = returnDate || new Date();
+    await borrowedBook.save();
 
-    if (!updatedBook) {
-      return res.status(404).json({ message: "Main book not found" });
+    // Step 4: Update the book's status to "Available"
+    const book = await Book.findById(borrowedBook.bookId);
+    if (book) {
+      book.status = "Available";
+      await book.save();
     }
 
-    // Step 4: Respond with success
+    // Step 5: Return response
     res.status(200).json({
       message: "Book returned successfully",
-      updatedBook, // Updated main book
-      returnedBook, // Entry in ReturnedBooks collection with new return date
+      returnedBook,
+      updatedBook: borrowedBook,
     });
   } catch (error) {
-    // Forward error to error-handling middleware
-    next(error);
+    console.error("Error returning book:", error);
+    res.status(500).json({ message: "An error occurred while returning the book." });
   }
 };
 
@@ -141,12 +153,13 @@ const returnBook = async (req, res, next) => {
 
 const returnedBooks = async (req, res, next) => {
   try {
-    const returned = await ReturnedBook.find(); // Corrected the typo here
-    res.json(returned);
+    const returned = await ReturnedBook.find(); // Correctly fetches all returned books
+    res.json(returned); // Sends the returned books as a JSON response
   } catch (error) {
-    next(error);
+    next(error); // Passes any errors to the next middleware (error handling)
   }
 };
+
 
 module.exports = {
   addBorrowedBooks,

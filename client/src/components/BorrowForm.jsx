@@ -84,7 +84,7 @@ export default function BorrowForm() {
 
     try {
       const borrowDate = new Date().toISOString(); // Get the current date in ISO format
-      const res = await axios.post(`/api/borrowedbooks/addborrowed`, {
+      const res = await axios.post(`http://localhost:3000/api/borrowedbooks/addborrowed`, {
         books: selectedBooks, // Array of selected books
         borrowerId: selectedBorrower, // ID of the selected borrower
         borrowDate: borrowDate, // Send the borrow date
