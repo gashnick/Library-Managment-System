@@ -14,7 +14,7 @@ router.post("/addborrowed", addBorrowedBooks);
 // GET endpoint to retrieve all borrowed books
 router.get("/getborrowed", getBorrowedBook);
 
-router.post("/return/:id", returnBook);
+router.post("/return/:bookId", returnBook);
 
 router.get("/returned", returnedBooks);
 

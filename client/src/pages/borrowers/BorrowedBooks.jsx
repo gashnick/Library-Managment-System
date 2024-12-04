@@ -8,26 +8,27 @@ export default function BorrowedBooks() {
   // Handle returning a borrowed book
   const handleReturn = async (bookId) => {
     try {
+      if (!bookId) {
+        alert("Book ID is required.");
+        return;
+      }
+
       const response = await fetch(
         `http://localhost:3000/api/borrowedbooks/return/${bookId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ returnDate: new Date().toISOString() }), // Include returnDate
+          body: JSON.stringify({ returnDate: new Date().toISOString() }),
         }
       );
 
       if (response.ok) {
-        const { returnedBook } = await response.json(); // Destructure API response
+        const { returnedBook } = await response.json();
         console.log("Book returned successfully:", returnedBook);
 
-        // Update the BorrowedBooks state
         setBorrowedBooks((prevBooks) =>
-          prevBooks.filter((book) => book._id !== bookId) // Remove returned book from borrowed list
+          prevBooks.filter((book) => book._id !== bookId)
         );
-
-        // Optionally, log or display returnedBook details if needed
-        console.log("Returned book entry created:", returnedBook);
       } else {
         const errorData = await response.json();
         console.error("Failed to return book:", errorData.message);
@@ -70,7 +71,7 @@ export default function BorrowedBooks() {
       field: "borrowDate",
       headerName: "Borrow Date",
       width: 130,
-      renderCell: (params) => new Date(params.row.borrowDate).toLocaleDateString(), // Format borrow date
+      renderCell: (params) => new Date(params.row.borrowDate).toLocaleDateString(),
     },
     {
       field: "action",
@@ -78,7 +79,7 @@ export default function BorrowedBooks() {
       width: 130,
       renderCell: (params) => (
         <button
-          onClick={() => handleReturn(params.row._id)}
+          onClick={() => handleReturn(params.row.id)}
           className="bg-red-500 text-white rounded text-sm px-4 py-2"
         >
           Return
@@ -92,11 +93,17 @@ export default function BorrowedBooks() {
       <h2 className="text-3xl font-semibold mb-5">Borrowed Books</h2>
       <Paper sx={{ height: 400, width: "100%" }}>
         <DataGrid
-          rows={borrowedBooks.map((book, index) => ({
-            ...book,
-            id: book._id || index, // Use MongoDB _id as unique id
-            borrowDate: book.borrowDate || "", // Fallback for borrowDate if missing
-          }))}
+          rows={borrowedBooks
+            .filter((book) => book._id) // Filter out books with missing `_id`
+            .map((book) => ({
+              id: book._id, // Use only MongoDB `_id` as the unique key
+              title: book.title || "N/A",
+              author: book.author || "N/A",
+              year: book.year || "Unknown",
+              status: book.status || "Unknown",
+              borrowerName: book.borrowerName || "Unknown",
+              borrowDate: book.borrowDate || new Date().toISOString(),
+            }))}
           columns={columns}
           pageSizeOptions={[5, 10, 100]}
           checkboxSelection={false}
