@@ -16,7 +16,7 @@ const Sidenav = () => {
             to="/dashboard/allbooks"
             className="block p-4 hover:bg-slate-700"
           >
-            All Books
+            Books
           </Link>
         </li>
         <li>
@@ -24,31 +24,15 @@ const Sidenav = () => {
             to="/dashboard/allborrowers"
             className="block p-4 hover:bg-slate-700"
           >
-            Borrowers
+            Users
           </Link>
         </li>
         <li>
           <Link
-            to="/dashboard/borrowed"
+            to="/dashboard/allborrowers"
             className="block p-4 hover:bg-slate-700"
           >
-            Borrowed Books
-          </Link>
-        </li>
-        <li>
-          <Link
-            to="/dashboard/returned"
-            className="block p-4 hover:bg-slate-700"
-          >
-            Returned Books
-          </Link>
-        </li>
-        <li>
-          <Link
-            to="/dashboard/history"
-            className="block p-4 hover:bg-slate-700"
-          >
-            History
+            All Books
           </Link>
         </li>
         <li>

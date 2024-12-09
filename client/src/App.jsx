@@ -9,14 +9,7 @@ import Header from "./components/Header";
 import PrivateRoute from "./components/PrivateRoute";
 import BookCreate from "./pages/book/BookCreate";
 import DispalyBooks from "./pages/book/DisplayBooks";
-import RegisterBorrower from "./pages/borrowers/RegisterBorrower";
-import Borrowers from "./pages/borrowers/Borrowers";
-import BorrowedBooks from "./pages/borrowers/BorrowedBooks";
-import History from "./pages/borrowers/History";
 import EditBook from "./pages/book/EditBook";
-import ReturnedBook from "./pages/borrowers/ReturnedBook";
-import BorrowForm from "./components/BorrowForm";
-
 
 export default function App() {
   return (
@@ -32,13 +25,7 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />}>
           <Route path="create" element={<BookCreate />} />
           <Route path="allbooks" element={<DispalyBooks />} />
-          <Route path="allborrowers" element={<Borrowers />} />
-          <Route path="registerborrower" element={<RegisterBorrower />} />
-          <Route path="borrowed" element={<BorrowedBooks />} />
-          <Route path="returned" element={<ReturnedBook />} />
-          <Route path="history" element={<History />} />
           <Route path="edit-book/:id" element={<EditBook />} />
-          <Route path="borrow" element={<BorrowForm />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,12 +1,22 @@
-const mongoose = require('mongoose');
-
-// Define the book copy schema
+const mongoose = require("mongoose");
 const bookCopySchema = new mongoose.Schema({
-  bookId: { type: mongoose.Schema.Types.ObjectId, ref: 'Book', required: true },
-  status: { type: String, required: true, enum: ['Available', 'Borrowed'], default: "Available" },
+  bookId: { type: mongoose.Schema.Types.ObjectId, ref: "Book", required: true },
+  status: {
+    type: String,
+    required: true,
+    enum: ["Available", "Borrowed"],
+    default: "Available",
+  },
+  borrowDate: { type: Date, default: null },
+  returnDate: { type: Date, default: null },
+  quantity: { type: Number, required: true, min: 0 },
+  borrower: {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    name: { type: String },
+    contact: { type: String },
+  },
 });
 
-// Create the model and specify the collection name
-const BookCopy = mongoose.model('BookCopy', bookCopySchema, 'bookCopies'); // Explicitly specify 'bookCopies' as the collection name
+const BookCopy = mongoose.model("BookCopy", bookCopySchema, "bookCopies"); // Explicitly specify 'bookCopies' as the collection name
 
 module.exports = BookCopy;

@@ -21,33 +21,7 @@ export default function DisplayBooks() {
   useEffect(() => {
     const getBooks = async () => {
       const fetchedBooks = await fetchBooks();
-      const updatedBooks = await Promise.all(
-        fetchedBooks.map(async (book) => {
-          // Fetch the copies for each book using the book's _id
-          const copies = await fetchBooksCopies(book._id);
-
-          // Filter the copies where bookId matches the current book's _id
-          const matchingCopies = copies.filter((copy) => copy.bookId === book._id);
-          
-          // Count how many copies are borrowed
-          const borrowedCopies = matchingCopies.filter((copy) => copy.status === "Borrowed").length;
-
-          // Calculate the available copies
-          const availableCopies = matchingCopies.length - borrowedCopies;
-
-          // Get the total copies or default to 1 if none found
-          const totalCopies = matchingCopies.length > 0 ? matchingCopies.length : 1;
-
-          // Return the updated book with the total number of copies, borrowed copies, and available copies
-          return {
-            ...book,
-            totalCopies,
-            borrowedCopies,
-            availableCopies,
-          };
-        })
-      );
-      setBooks(updatedBooks); // Set the updated books with the total copies
+      setBooks(fetchedBooks); // Set the updated books with the total copies
     };
 
     getBooks();
@@ -125,10 +99,7 @@ export default function DisplayBooks() {
               <TableCell align="right">Author</TableCell>
               <TableCell align="right">Year</TableCell>
               <TableCell align="right">Pages</TableCell>
-              <TableCell align="right">Total Copies</TableCell> {/* Display Total Copies */}
-              <TableCell align="right">Borrowed Copies</TableCell> {/* Display Borrowed Copies */}
-              <TableCell align="right">Available Copies</TableCell> {/* Display Available Copies */}
-              <TableCell align="right">Status</TableCell>
+              <TableCell align="right">Copies</TableCell>
               <TableCell align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -140,10 +111,7 @@ export default function DisplayBooks() {
                   <TableCell align="right">{book.author}</TableCell>
                   <TableCell align="right">{book.year}</TableCell>
                   <TableCell align="right">{book.pages}</TableCell>
-                  <TableCell align="right">{book.totalCopies}</TableCell> {/* Show total copies */}
-                  <TableCell align="right">{book.borrowedCopies}</TableCell> {/* Show borrowed copies */}
-                  <TableCell align="right">{book.availableCopies}</TableCell> {/* Show available copies */}
-                  <TableCell align="right">{book.status}</TableCell>
+                  <TableCell align="right">{book.copies}</TableCell>
                   <TableCell align="center">
                     <div
                       style={{
