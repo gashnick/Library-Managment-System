@@ -7,6 +7,7 @@ const {
   deleteBook,
   updateBookStatus,
   bookId,
+  fetchBookCopies,
 } = require("../controller/book.controller");
 
 router.post("/create", createBook); // Create a new book
@@ -16,5 +17,6 @@ router.post("/render/:id");
 router.patch("/status/:id", updateBookStatus);
 router.put("/update/:id", updateBook);
 router.delete("/delete/:id", deleteBook);
+router.get("/copies", fetchBookCopies)
 
 module.exports = router;

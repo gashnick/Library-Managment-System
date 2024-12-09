@@ -9,7 +9,7 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import TablePagination from "@mui/material/TablePagination";
 import Button from "@mui/material/Button";
-import { fetchBooks, deleteBook } from "../book/apiService"; // Adjust path to match your structure
+import { fetchBooks, deleteBook, fetchBooksCopies } from "../book/apiService"; // Adjust path to match your structure
 import BookStats from "../../components/BookStats";
 
 export default function DisplayBooks() {
@@ -21,7 +21,33 @@ export default function DisplayBooks() {
   useEffect(() => {
     const getBooks = async () => {
       const fetchedBooks = await fetchBooks();
-      setBooks(fetchedBooks);
+      const updatedBooks = await Promise.all(
+        fetchedBooks.map(async (book) => {
+          // Fetch the copies for each book using the book's _id
+          const copies = await fetchBooksCopies(book._id);
+
+          // Filter the copies where bookId matches the current book's _id
+          const matchingCopies = copies.filter((copy) => copy.bookId === book._id);
+          
+          // Count how many copies are borrowed
+          const borrowedCopies = matchingCopies.filter((copy) => copy.status === "Borrowed").length;
+
+          // Calculate the available copies
+          const availableCopies = matchingCopies.length - borrowedCopies;
+
+          // Get the total copies or default to 1 if none found
+          const totalCopies = matchingCopies.length > 0 ? matchingCopies.length : 1;
+
+          // Return the updated book with the total number of copies, borrowed copies, and available copies
+          return {
+            ...book,
+            totalCopies,
+            borrowedCopies,
+            availableCopies,
+          };
+        })
+      );
+      setBooks(updatedBooks); // Set the updated books with the total copies
     };
 
     getBooks();
@@ -99,6 +125,9 @@ export default function DisplayBooks() {
               <TableCell align="right">Author</TableCell>
               <TableCell align="right">Year</TableCell>
               <TableCell align="right">Pages</TableCell>
+              <TableCell align="right">Total Copies</TableCell> {/* Display Total Copies */}
+              <TableCell align="right">Borrowed Copies</TableCell> {/* Display Borrowed Copies */}
+              <TableCell align="right">Available Copies</TableCell> {/* Display Available Copies */}
               <TableCell align="right">Status</TableCell>
               <TableCell align="center">Actions</TableCell>
             </TableRow>
@@ -111,6 +140,9 @@ export default function DisplayBooks() {
                   <TableCell align="right">{book.author}</TableCell>
                   <TableCell align="right">{book.year}</TableCell>
                   <TableCell align="right">{book.pages}</TableCell>
+                  <TableCell align="right">{book.totalCopies}</TableCell> {/* Show total copies */}
+                  <TableCell align="right">{book.borrowedCopies}</TableCell> {/* Show borrowed copies */}
+                  <TableCell align="right">{book.availableCopies}</TableCell> {/* Show available copies */}
                   <TableCell align="right">{book.status}</TableCell>
                   <TableCell align="center">
                     <div
@@ -142,7 +174,7 @@ export default function DisplayBooks() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={9} align="center">
                   No books available
                 </TableCell>
               </TableRow>

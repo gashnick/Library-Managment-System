@@ -3,6 +3,7 @@ const Book = require("../models/book.model");
 const ReturnedBook = require("../models/returned.model");
 const mongoose = require('mongoose')
 const errorHandler = require("../utils/error");
+const BookCopy = require('../models/copy.book.model');
 
 const addBorrowedBooks = async (req, res, next) => {
   try {
@@ -23,22 +24,31 @@ const addBorrowedBooks = async (req, res, next) => {
     const borrowedBooks = []; // Array to store borrowed book records
 
     for (const bookId of books) {
-      // Find the book by ID
-      const book = await Book.findById(bookId);
+      // Find the first available copy of the book
+      const availableCopy = await BookCopy.findOne({ bookId, status: "Available" });
 
+      if (!availableCopy) {
+        return res.status(400).json({ message: `No available copies for book with ID ${bookId}.` });
+      }
+
+      // Update the status of the copy to "Borrowed"
+      availableCopy.status = "Borrowed";
+      await availableCopy.save();
+
+      // Find the book details
+      const book = await Book.findById(bookId);
       if (!book) {
         return res.status(404).json({ message: `Book with ID ${bookId} not found` });
       }
 
-      if (book.status === "Borrowed") {
-        return res.status(400).json({ message: `Book "${book.title}" is already borrowed.` });
-      }
+      // Update the borrowedCopies count in the Book collection
+      book.borrowedCopies += 1;
 
-      // Update the book's status to 'Borrowed'
-      book.status = "Borrowed";
+      // Recalculate remainingCopies
+      book.remainingCopies = book.copies - book.borrowedCopies;
       await book.save();
 
-      // Create a new borrowed book record with the necessary book details
+      // Create a new borrowed book record with the necessary details
       const borrowedBook = new BorrowedBook({
         bookId: book._id, // Store the book's ID as a reference
         title: book.title, // Pass the book's title
@@ -46,16 +56,16 @@ const addBorrowedBooks = async (req, res, next) => {
         pages: book.pages, // Pass the number of pages if available
         status: "Borrowed", // Book status is borrowed
         borrowDate: borrowDate, // Pass the borrow date from request body
-        borrowerName: borrowerId, // Store borrower information (borrowerId or name)
+        borrowerName: borrowerId, // Store borrower information
         year: book.year, // Pass the book's year
       });
 
-      // Save the borrowed book in the borrowed books collection
+      // Save the borrowed book record
       await borrowedBook.save();
       borrowedBooks.push(borrowedBook);
     }
 
-    // Return all borrowed book data as the response
+    // Return success response
     res.status(201).json({ message: "Books borrowed successfully", borrowedBooks });
   } catch (error) {
     next(error);
@@ -107,7 +117,7 @@ const getBorrowedBook = async (req, res, next) => {
 
 const returnBook = async (req, res, next) => {
   try {
-    const { bookId } = req.params; // Corrected from `request.params` to `req.params`
+    const { bookId } = req.params;
     const { returnDate } = req.body;
 
     if (!bookId) {
@@ -118,39 +128,44 @@ const returnBook = async (req, res, next) => {
       return res.status(400).json({ message: "Return date is required." });
     }
 
-    // Find the borrowed book by ID
+    // Find the borrowed book record
     const borrowedBook = await BorrowedBook.findOne({ bookId, status: "Borrowed" });
 
     if (!borrowedBook) {
       return res.status(404).json({ message: `No borrowed book found with ID ${bookId}.` });
     }
 
-    // Update the borrowed book's status to "Returned"
+    // Update the borrowed book status to "Returned"
     borrowedBook.status = "Returned";
     borrowedBook.returnDate = returnDate;
     await borrowedBook.save();
 
-    // Create a new returned book record
-    const returnedBook = new ReturnedBook({
-      bookId: borrowedBook.bookId, // Book ID from the borrowed book
-      borrowerName: borrowedBook.borrowerName,
-      returnDate: returnDate,
-    });
+    // Find and update the book copy's status to "Available"
+    const bookCopy = await BookCopy.findOne({ bookId, status: "Borrowed" });
+    if (!bookCopy) {
+      return res.status(404).json({ message: `No borrowed copy found for book with ID ${bookId}.` });
+    }
 
-    await returnedBook.save();
+    bookCopy.status = "Available";
+    await bookCopy.save();
 
-    // Update the book status in the Book collection to "Available"
-    await Book.findByIdAndUpdate(borrowedBook.bookId, { status: "Available" });
+    // Update the borrowedCopies count in the Book collection
+    const book = await Book.findById(bookId);
+    if (book) {
+      book.borrowedCopies -= 1;
 
-    // Return success response
-    res.status(200).json({
-      message: "Book returned successfully",
-      returnedBook,
-    });
+      // Recalculate the remainingCopies
+      book.remainingCopies = book.copies - book.borrowedCopies;
+      await book.save();
+    }
+
+    res.status(200).json({ message: "Book returned successfully", borrowedBook });
   } catch (error) {
     next(error);
   }
 };
+
+
 
 
 const returnedBooks = async (req, res, next) => {

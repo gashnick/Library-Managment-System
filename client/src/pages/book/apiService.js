@@ -4,7 +4,6 @@ import axios from "axios";
 export const fetchBooks = async () => {
   try {
     const response = await axios.get("http://localhost:3000/api/book/books");
-    console.log("API response:", response.data); // Log the response for debugging
     return response.data; // Assuming the API already returns the array of books
   } catch (err) {
     console.error("Error fetching books:", err);
@@ -12,6 +11,16 @@ export const fetchBooks = async () => {
   }
 };
 
+export const fetchBooksCopies = async () => {
+  try {
+    const response = await axios.get("http://localhost:3000/api/book/copies");
+    return response.data
+  } catch (error) {
+      console.log("Error fetching copies of book: ", error);
+      return []
+  }
+  
+}
 export const fetchBorrowers = async () => {
   try {
     const response = await fetch(

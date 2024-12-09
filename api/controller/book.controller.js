@@ -1,4 +1,5 @@
 const Book = require("../models/book.model");
+const BookCopy = require('../models/copy.book.model')
 const errorHandler = require("../utils/error");
 
 // Create a new book
@@ -112,6 +113,33 @@ const bookId = async (req, res, next) => {
   }
 };
 
+const fetchBookCopies = async (req, res,next) => { 
+  try {
+    const copies = await BookCopy.find()
+    res.json(copies)
+  } catch (error) {
+    next(errorHandler(500, "Failed to fetch book copies"))
+  }
+ 
+}
+
+const machedCopies = async (req, res, next) => {
+  try {
+    const books = await Book.find();
+    const copies = await BookCopy.find();
+    const bookWithCopies = books.map(book => {
+      const availbaleCopies = copies.filter(coppy => coppy.bookId.toString() === book._id.toString() && coppy.status === 'Available');
+      return {
+        ...book.toString(),
+        availbaleCopies
+      }
+    })
+    res.json(bookWithCopies)
+  } catch (error) {
+    
+  }
+}
+
 module.exports = {
   createBook,
   getAllBooks,
@@ -119,4 +147,5 @@ module.exports = {
   deleteBook,
   updateBookStatus,
   bookId,
+  fetchBookCopies,
 };
