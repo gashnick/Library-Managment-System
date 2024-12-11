@@ -11,16 +11,24 @@ export const fetchBooks = async () => {
   }
 };
 
-export const fetchBooksCopies = async () => {
+export const fetchCopies = async () => {
   try {
-    const response = await axios.get("http://localhost:3000/api/book/copies");
+    const response = await axios.get("http://localhost:3000/api/copy/copies");
     return response.data;
   } catch (error) {
     console.log("Error fetching copies of book: ", error);
     return [];
   }
 };
-
+export const fetchUsers = async () => {
+  try {
+    const response = await axios.get("http://localhost:3000/api/user/allusers");
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
 export const deleteBook = async (id) => {
   try {
     const response = await axios.delete(

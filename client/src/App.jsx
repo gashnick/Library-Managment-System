@@ -10,6 +10,8 @@ import PrivateRoute from "./components/PrivateRoute";
 import BookCreate from "./pages/book/BookCreate";
 import DispalyBooks from "./pages/book/DisplayBooks";
 import EditBook from "./pages/book/EditBook";
+import BorrowForm from "./pages/book/BorrowForm";
+import Page from "./pages/book/copies/page";
 
 export default function App() {
   return (
@@ -26,6 +28,8 @@ export default function App() {
           <Route path="create" element={<BookCreate />} />
           <Route path="allbooks" element={<DispalyBooks />} />
           <Route path="edit-book/:id" element={<EditBook />} />
+          <Route path="borrow" element={<BorrowForm />} />
+          <Route path="copy" element={<Page />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -17,6 +17,6 @@ const bookCopySchema = new mongoose.Schema({
   },
 });
 
-const BookCopy = mongoose.model("BookCopy", bookCopySchema, "bookCopies"); // Explicitly specify 'bookCopies' as the collection name
+const BookCopy = mongoose.model("BookCopy", bookCopySchema);
 
 module.exports = BookCopy;

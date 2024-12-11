@@ -9,7 +9,7 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import TablePagination from "@mui/material/TablePagination";
 import Button from "@mui/material/Button";
-import { fetchBooks, deleteBook, fetchBooksCopies } from "../book/apiService"; // Adjust path to match your structure
+import { fetchBooks, deleteBook, fetchCopies } from "../book/apiService"; // Adjust path to match your structure
 import BookStats from "../../components/BookStats";
 
 export default function DisplayBooks() {

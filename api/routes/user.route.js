@@ -6,6 +6,6 @@ const { updateUser, getUsers } = require("../controller/user.controller");
 const router = express.Router();
 
 router.post("/update/:id", verifyToken, updateUser);
-router.post("/allusers", getUsers);
+router.get("/allusers", getUsers);
 
 module.exports = router;
