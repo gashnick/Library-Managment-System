@@ -50,7 +50,30 @@ const borrowBook = async (req, res, next) => {
   }
 };
 
+const returnBook = async (req, res, next) => {
+  try {
+    const { bookId } = req.params;
+
+    const updatedBookCopy = await BookCopy.findOneAndUpdate(
+      { _id: bookId, status: "Borrowed" },
+      { status: "Available", returnDate: new Date() }
+    );
+
+    if (!updatedBookCopy) {
+      return res
+        .status(404)
+        .json({ error: "Book copy not found or not borrowed" });
+    }
+
+    res.status(200).json({ message: "Book returned successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error returning book" });
+  }
+};
+
 module.exports = {
   getCopy,
   borrowBook,
+  returnBook,
 };
