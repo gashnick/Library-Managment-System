@@ -15,10 +15,15 @@ const bookSchema = new mongoose.Schema({
   link: { type: String },
   pages: { type: Number },
   year: { type: Number },
-  copies: {
+  quantity: {
     type: Number,
     required: true,
-    default: 1,
+  },
+  status: {
+    type: String,
+    required: true,
+    enum: ["Available", "Issued"],
+    default: "Available",
   },
 });
 

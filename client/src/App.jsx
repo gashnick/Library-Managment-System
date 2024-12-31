@@ -13,6 +13,7 @@ import EditBook from "./pages/book/EditBook";
 import BorrowForm from "./pages/book/BorrowForm";
 import Page from "./pages/book/copies/page";
 import ReturnPagePage from "./pages/book/return/ReturnPage";
+import Transaction from "./pages/book/transaction/Transaction";
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="borrow" element={<BorrowForm />} />
           <Route path="copy" element={<Page />} />
           <Route path="return" element={<ReturnPagePage />} />
+          <Route path="transactions" element={<Transaction />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -4,10 +4,16 @@ import axios from "axios";
 export const fetchBooks = async () => {
   try {
     const response = await axios.get("http://localhost:3000/api/book/books");
-    return response.data; // Assuming the API already returns the array of books
+    return {
+      success: true,
+      books: response.data, // Ensure the response contains this structure
+    };
   } catch (err) {
     console.error("Error fetching books:", err);
-    return []; // Return an empty array on error
+    return {
+      success: false,
+      books: [],
+    };
   }
 };
 

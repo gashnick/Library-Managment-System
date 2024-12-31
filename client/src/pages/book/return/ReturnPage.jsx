@@ -1,44 +1,87 @@
 import React, { useState } from "react";
+import axios from "axios";
 
-function ReturnPage() {
-  const [bookId, setBookId] = useState("");
+const ReturnPage = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [bookDetails, setBookDetails] = useState(null);
+  const [error, setError] = useState("");
 
-  const handleReturn = async (event) => {
-    event.preventDefault();
-
+  // Fetch book details based on search query
+  const findBook = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/copy/return/${bookId}`,
+      const { data } = await axios.get(
+        `http://localhost:3000/api/transaction/find?query=${searchQuery}`
+      );
+      setBookDetails(data);
+      setError(""); // Clear any previous errors
+    } catch (error) {
+      setBookDetails(null);
+      setError("Book not found. Please check the ID or title.");
+    }
+  };
+
+  // Return book functionality
+  const returnBook = async () => {
+    try {
+      const { data } = await axios.post(
+        "http://localhost:3000/api/transaction/return",
         {
-          method: "PUT",
+          bookId: bookDetails._id, // Use the book's ID to process the return
         }
       );
-
-      if (response.ok) {
-        alert("Book returned successfully!");
-        setBookId(""); // Clear the input field
-      } else {
-        alert("Error returning book. Please try again.");
-      }
+      alert(data.message || "Book returned successfully!");
+      setBookDetails(null); // Clear book details after returning
+      setSearchQuery(""); // Clear the search field
     } catch (error) {
-      console.error("Error returning book:", error);
-      alert("An error occurred. Please try again later.");
+      alert("Failed to return book. Please try again.");
     }
   };
 
   return (
-    <form onSubmit={handleReturn}>
-      <label htmlFor="bookId">Book ID:</label>
-      <input
-        type="text"
-        id="bookId"
-        value={bookId}
-        onChange={(e) => setBookId(e.target.value)}
-        required
-      />
-      <button type="submit">Return Book</button>
-    </form>
+    <div className="p-6 bg-gray-100 rounded-lg mt-4">
+      <h2 className="text-2xl font-bold mb-4 text-center">Return a Book</h2>
+
+      {/* Search Form */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Enter Book ID or Title"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="border p-2 w-full rounded"
+        />
+        <button
+          onClick={findBook}
+          className="bg-blue-500 text-white px-4 py-2 mt-2 rounded w-full"
+        >
+          Find
+        </button>
+      </div>
+
+      {/* Display Book Details or Error */}
+      {error && <p className="text-red-500">{error}</p>}
+      {bookDetails && (
+        <div className="bg-white p-4 rounded shadow">
+          <h3 className="text-lg font-bold mb-2">Book Details</h3>
+          <p>
+            <strong>Title:</strong> {bookDetails.title}
+          </p>
+          <p>
+            <strong>Author:</strong> {bookDetails.author}
+          </p>
+          <p>
+            <strong>Status:</strong> {bookDetails.status}
+          </p>
+          <button
+            onClick={returnBook}
+            className="bg-green-500 text-white px-4 py-2 mt-4 rounded"
+          >
+            Return Book
+          </button>
+        </div>
+      )}
+    </div>
   );
-}
+};
 
 export default ReturnPage;

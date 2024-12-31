@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const authRoute = require("./routes/auth.route");
 const userRoute = require("./routes/user.route");
 const bookRoute = require("./routes/book.route");
+const transactionRoute = require("./routes/transaction.route");
 const copyRoute = require("./routes/book.copy.route");
 const cors = require("cors");
 dotenv.config();
@@ -25,6 +26,7 @@ app.use(morgan("dev"));
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/book", bookRoute);
+app.use("/api/transaction", transactionRoute);
 app.use("/api/copy", copyRoute);
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
