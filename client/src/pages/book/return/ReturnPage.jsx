@@ -10,13 +10,17 @@ const ReturnPage = () => {
   const findBook = async () => {
     try {
       const { data } = await axios.get(
-        `http://localhost:3000/api/transaction/find?query=${searchQuery}`
+        `http://localhost:3000/api/transaction/find?title=${searchQuery}`
       );
-      setBookDetails(data);
-      setError(""); // Clear any previous errors
+      if (data.length === 0) {
+        setError("No books found matching the search criteria.");
+      } else {
+        setBookDetails(data[0]); // Assuming only one book matches, taking the first result
+        setError(""); // Clear any previous errors
+      }
     } catch (error) {
       setBookDetails(null);
-      setError("Book not found. Please check the ID or title.");
+      setError("Error fetching book. Please try again later.");
     }
   };
 
@@ -24,10 +28,7 @@ const ReturnPage = () => {
   const returnBook = async () => {
     try {
       const { data } = await axios.post(
-        "http://localhost:3000/api/transaction/return",
-        {
-          bookId: bookDetails._id, // Use the book's ID to process the return
-        }
+        `http://localhost:3000/api/transaction/return/${bookDetails._id}` // Use bookDetails._id here
       );
       alert(data.message || "Book returned successfully!");
       setBookDetails(null); // Clear book details after returning
@@ -36,6 +37,7 @@ const ReturnPage = () => {
       alert("Failed to return book. Please try again.");
     }
   };
+  
 
   return (
     <div className="p-6 bg-gray-100 rounded-lg mt-4">
@@ -45,7 +47,7 @@ const ReturnPage = () => {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Enter Book ID or Title"
+          placeholder="Enter Book Title"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="border p-2 w-full rounded"

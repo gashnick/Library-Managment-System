@@ -11,7 +11,7 @@ import BookCreate from "./pages/book/BookCreate";
 import DispalyBooks from "./pages/book/DisplayBooks";
 import EditBook from "./pages/book/EditBook";
 import BorrowForm from "./pages/book/BorrowForm";
-import Page from "./pages/book/copies/page";
+import Page from "./pages/book/copies/Page";
 import ReturnPagePage from "./pages/book/return/ReturnPage";
 import Transaction from "./pages/book/transaction/Transaction";
 
