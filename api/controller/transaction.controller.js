@@ -3,7 +3,7 @@ const Transaction = require("../models/transaction.model");
 
 const issueBook = async (req, res, next) => {
   try {
-    const { userId, bookId } = req.body;
+    const { userId, bookId, dueDate } = req.body; // Include dueDate in the destructuring
 
     const book = await Book.findById(bookId);
     if (!book) return res.status(404).json({ message: "Book not found" });
@@ -20,6 +20,7 @@ const issueBook = async (req, res, next) => {
         userId,
         status: "Pending",
         borrowDate: new Date(),
+        returnDate: dueDate, // Store the dueDate as returnDate
       });
       await transaction.save();
 
@@ -34,9 +35,10 @@ const issueBook = async (req, res, next) => {
   }
 };
 
+
 const returnBook = async (req, res, next) => {
   try {
-    const { bookId } = req.params;  // Get bookId from URL parameters
+    const { bookId } = req.params; // Get bookId from URL parameters
 
     // Find the book by ID
     const book = await Book.findById(bookId);
@@ -49,24 +51,35 @@ const returnBook = async (req, res, next) => {
     }
     await book.save();
 
-    // Find and update the related transaction
-    const transaction = await Transaction.findOneAndUpdate(
-      { bookId, status: "Pending" },
-      { status: "Returned", returnDate: new Date() },
-      { new: true }
-    );
-    if (!transaction) {
+    // Find the original transaction
+    const originalTransaction = await Transaction.findOne({
+      bookId,
+      status: "Pending",
+    });
+    if (!originalTransaction) {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
+    // Create a new transaction with updated status
+    const newTransaction = new Transaction({
+      bookId: originalTransaction.bookId,
+      userId: originalTransaction.userId,
+      status: "Returned",
+      borrowDate: originalTransaction.borrowDate,
+      returnDate: new Date(),
+    });
+    await newTransaction.save();
+
     // Return a success response
-    res
-      .status(200)
-      .json({ message: "Book returned successfully", transaction });
+    res.status(200).json({
+      message: "Book returned successfully",
+      newTransaction,
+    });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error", error });
   }
 };
+
 
 
 const getTransactions = async (req, res, next) => {
