@@ -8,6 +8,7 @@ export default function BorrowForm() {
   const [selectedBook, setSelectedBook] = useState("");
   const [userDetails, setUserDetails] = useState(null);
   const [bookDetails, setBookDetails] = useState(null);
+  const [dueDate, setDueDate] = useState(""); // State for the due date
 
   useEffect(() => {
     const loadData = async () => {
@@ -35,9 +36,7 @@ export default function BorrowForm() {
   const handleBookChange = (e) => {
     const bookId = e.target.value;
     setSelectedBook(bookId);
-    const book = books.find((b) => b._id === bookId); // Match by _id
-    //console.log("Selected Book ID:", bookId);
-    //console.log("Selected Book Details:", book);
+    const book = books.find((b) => b._id === bookId);
     if (book) {
       setBookDetails(book);
     } else {
@@ -52,7 +51,11 @@ export default function BorrowForm() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: selectedUser, bookId: selectedBook }),
+          body: JSON.stringify({
+            userId: selectedUser,
+            bookId: selectedBook,
+            dueDate, // Include the due date in the payload
+          }),
         }
       );
       const data = await response.json();
@@ -63,6 +66,7 @@ export default function BorrowForm() {
         setSelectedBook("");
         setUserDetails(null);
         setBookDetails(null);
+        setDueDate(""); // Reset the due date field
       } else {
         alert("Failed to borrow the book.");
       }
@@ -156,10 +160,19 @@ export default function BorrowForm() {
             className="mt-2 w-full rounded-lg border-gray-300 shadow p-2"
           />
         </div>
+        <div className="mb-4">
+          <label className="block font-medium">Due Date</label>
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="mt-2 w-full rounded-lg border-gray-300 shadow p-2"
+          />
+        </div>
         <button
           onClick={handleBorrow}
           className="w-full bg-green-500 text-white py-2 rounded-lg shadow hover:bg-green-600"
-          disabled={!selectedUser || !selectedBook}
+          disabled={!selectedUser || !selectedBook || !dueDate}
         >
           Confirm Borrow
         </button>

@@ -1,7 +1,6 @@
 import React from "react";
 import Sidenav from "../components/Sidenav"; // Adjust the import path as necessary
 import { Outlet, useLocation } from "react-router-dom";
-import BookStats from "../components/BookStats";
 
 export default function Dashboard() {
   const location = useLocation();
@@ -19,11 +18,6 @@ export default function Dashboard() {
             <p>
               Manage books, register borrowers, and track borrowing activity.
             </p>
-
-            {/* Library Statistics Section */}
-            <section className="">
-              <BookStats />
-            </section>
 
             {/* Additional Dashboard Content */}
             {/* You can add other sections or components here as needed */}

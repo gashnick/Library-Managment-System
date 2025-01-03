@@ -11,7 +11,6 @@ import TablePagination from "@mui/material/TablePagination";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import { fetchBooks, deleteBook } from "../book/apiService";
-import BookStats from "../../components/BookStats";
 
 export default function DisplayBooks() {
   const [books, setBooks] = useState([]);
@@ -75,10 +74,6 @@ export default function DisplayBooks() {
     <div style={{ display: "flex", flexDirection: "row" }}>
       {/* Table displaying books */}
       <div style={{ flex: 2 }}>
-        <div className="mb-2 justify-center items-center">
-          <BookStats />
-        </div>
-
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="books table">
             <TableHead>

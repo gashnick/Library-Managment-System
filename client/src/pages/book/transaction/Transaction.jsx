@@ -9,20 +9,37 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
+import DateFilter from "../../../components/DateFilter";
 
 const Transaction = () => {
   const [transactions, setTransactions] = useState([]);
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
 
   // Fetch transactions from the backend
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (startDate, endDate) => {
     try {
-      const { data } = await axios.get(
-        "http://localhost:3000/api/transaction/get"
-      );
+      let url = "http://localhost:3000/api/transaction/get";
+      if (startDate && endDate) {
+        url += `?startDate=${startDate}&endDate=${endDate}`;
+      }
+      const { data } = await axios.get(url);
       setTransactions(data);
+      setFilteredTransactions(data);  // Initially, set the filtered transactions to the same as the fetched data
     } catch (error) {
       console.error("Failed to load transactions:", error);
     }
+  };
+
+  // Handle the date filter
+  const handleDateFilter = ({ startDate, endDate }) => {
+    // Filter the transactions based on the provided date range
+    const filtered = transactions.filter((txn) => {
+      const borrowDate = new Date(txn.borrowDate);
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      return borrowDate >= start && borrowDate <= end;
+    });
+    setFilteredTransactions(filtered);
   };
 
   useEffect(() => {
@@ -31,11 +48,9 @@ const Transaction = () => {
 
   return (
     <div className="p-6 bg-gray-100 rounded-lg mt-4">
-      <h2 className="text-2xl font-bold mb-4 text-center">
-        Transaction History
-      </h2>
-
-      <TableContainer component={Paper}>
+      <h2 className="text-2xl font-bold mb-4 text-center">Transaction History</h2>
+      <DateFilter onFilter={handleDateFilter} className="mb-4" />
+      <TableContainer component={Paper} className="mt-5">
         <Table aria-label="transaction table">
           <TableHead>
             <TableRow>
@@ -60,8 +75,8 @@ const Transaction = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {transactions.length > 0 ? (
-              transactions.map((txn) => (
+            {filteredTransactions.length > 0 ? (
+              filteredTransactions.map((txn) => (
                 <TableRow key={txn._id}>
                   <TableCell>{txn.bookId?.title || "N/A"}</TableCell>
                   <TableCell>{txn.bookId?.author || "N/A"}</TableCell>
