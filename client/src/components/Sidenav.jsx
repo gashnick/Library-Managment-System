@@ -21,7 +21,7 @@ const Sidenav = () => {
         </li>
         <li>
           <Link
-            to="/dashboard/allborrowers"
+            to="/dashboard/users"
             className="block p-4 hover:bg-slate-700"
           >
             Users

@@ -14,6 +14,7 @@ import BorrowForm from "./pages/book/BorrowForm";
 import Page from "./pages/book/copies/Page";
 import ReturnPagePage from "./pages/book/return/ReturnPage";
 import Transaction from "./pages/book/transaction/Transaction";
+import Users from "./pages/users/Users";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="copy" element={<Page />} />
           <Route path="return" element={<ReturnPagePage />} />
           <Route path="transactions" element={<Transaction />} />
+          <Route path="users" element={<Users />} />
         </Route>
       </Routes>
     </BrowserRouter>
