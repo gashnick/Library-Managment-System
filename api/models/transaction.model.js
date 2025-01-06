@@ -18,8 +18,8 @@ const transactionSchema = new mongoose.Schema({
   returnDate: Date,
   status: {
     type: String,
-    enum: ["Pending", "Returned"],
-    default: "Pending",
+    enum: ["Borrowed", "Returned"],
+    default: "Borrowed",
   },
 });
 

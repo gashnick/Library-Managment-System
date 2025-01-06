@@ -18,7 +18,7 @@ const issueBook = async (req, res, next) => {
       const transaction = new Transaction({
         bookId,
         userId,
-        status: "Pending",
+        status: "Borrowed",
         borrowDate: new Date(),
         returnDate: dueDate, // Store the dueDate as returnDate
       });
@@ -54,7 +54,7 @@ const returnBook = async (req, res, next) => {
     // Find the original transaction
     const originalTransaction = await Transaction.findOne({
       bookId,
-      status: "Pending",
+      status: "Borrowed",
     });
     if (!originalTransaction) {
       return res.status(404).json({ message: "Transaction not found" });
