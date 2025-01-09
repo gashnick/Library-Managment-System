@@ -5,9 +5,8 @@ export default function BorrowForm() {
   const [users, setUsers] = useState([]);
   const [books, setBooks] = useState([]);
   const [selectedUser, setSelectedUser] = useState("");
-  const [selectedBook, setSelectedBook] = useState("");
+  const [selectedBooks, setSelectedBooks] = useState([]); // Array for selected books
   const [userDetails, setUserDetails] = useState(null);
-  const [bookDetails, setBookDetails] = useState(null);
   const [dueDate, setDueDate] = useState(""); // State for the due date
 
   useEffect(() => {
@@ -34,14 +33,9 @@ export default function BorrowForm() {
   };
 
   const handleBookChange = (e) => {
-    const bookId = e.target.value;
-    setSelectedBook(bookId);
-    const book = books.find((b) => b._id === bookId);
-    if (book) {
-      setBookDetails(book);
-    } else {
-      console.error("Book not found in the books array");
-    }
+    const options = Array.from(e.target.selectedOptions);
+    const bookIds = options.map((option) => option.value);
+    setSelectedBooks(bookIds);
   };
 
   const handleBorrow = async () => {
@@ -53,22 +47,21 @@ export default function BorrowForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: selectedUser,
-            bookId: selectedBook,
-            dueDate, // Include the due date in the payload
+            bookIds: selectedBooks, // Send array of book IDs
+            dueDate, // Include the due date
           }),
         }
       );
       const data = await response.json();
 
       if (data.success) {
-        alert("Book successfully borrowed!");
+        alert("Books successfully borrowed!");
         setSelectedUser("");
-        setSelectedBook("");
+        setSelectedBooks([]);
         setUserDetails(null);
-        setBookDetails(null);
         setDueDate(""); // Reset the due date field
       } else {
-        alert("Failed to borrow the book.");
+        alert(data.message || "Failed to borrow books.");
       }
     } catch (error) {
       console.error("Borrow Error:", error);
@@ -108,54 +101,44 @@ export default function BorrowForm() {
         )}
       </div>
 
-      {/* Book Selection Form */}
-      <div className="w-full md:w-1/3 p-6 bg-gray-100 rounded-lg shadow">
-        <h2 className="text-xl font-bold mb-4">Select Book</h2>
-        <label htmlFor="book" className="block font-medium">
-          Book
+      {/* Books Selection Form */}
+<div className="w-full md:w-1/3 p-6 bg-gray-100 rounded-lg shadow">
+  <h2 className="text-xl font-bold mb-4">Select Books</h2>
+  <label className="block font-medium mb-2">Books</label>
+  <div className="space-y-2">
+    {books.map((book) => (
+      <div key={book._id} className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id={`book-${book._id}`}
+          value={book._id}
+          checked={selectedBooks.includes(book._id)}
+          onChange={(e) => {
+            const { value, checked } = e.target;
+            setSelectedBooks((prev) =>
+              checked
+                ? [...prev, value] // Add book if checked
+                : prev.filter((id) => id !== value) // Remove book if unchecked
+            );
+          }}
+          className="w-4 h-4"
+        />
+        <label htmlFor={`book-${book._id}`} className="text-sm">
+          {book.title} (Available: {book.quantity})
         </label>
-        <select
-          id="book"
-          value={selectedBook}
-          onChange={handleBookChange}
-          className="mt-2 w-full rounded-lg shadow p-2"
-        >
-          <option value="">Choose Book</option>
-          {books.map((book) => (
-            <option key={book._id} value={book._id}>
-              {book.title} (Available: {book.quantity})
-            </option>
-          ))}
-        </select>
-        {bookDetails && (
-          <div className="mt-4 p-4 bg-white rounded-lg shadow">
-            <p>
-              <strong>Title:</strong> {bookDetails.title}
-            </p>
-            <p>
-              <strong>Author:</strong> {bookDetails.author}
-            </p>
-          </div>
-        )}
       </div>
+    ))}
+  </div>
+</div>
 
       {/* Borrow Confirmation Form */}
       <div className="w-full md:w-1/3 p-6 bg-gray-100 rounded-lg shadow">
-        <h2 className="text-xl font-bold mb-4">Borrow Book</h2>
+        <h2 className="text-xl font-bold mb-4">Borrow Books</h2>
         <div className="mb-4">
           <label className="block font-medium">Selected User</label>
           <input
             type="text"
             value={userDetails?.username || ""}
-            readOnly
-            className="mt-2 w-full rounded-lg border-gray-300 shadow p-2"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block font-medium">Selected Book</label>
-          <input
-            type="text"
-            value={bookDetails?.title || ""}
             readOnly
             className="mt-2 w-full rounded-lg border-gray-300 shadow p-2"
           />
@@ -172,7 +155,7 @@ export default function BorrowForm() {
         <button
           onClick={handleBorrow}
           className="w-full bg-green-500 text-white py-2 rounded-lg shadow hover:bg-green-600"
-          disabled={!selectedUser || !selectedBook || !dueDate}
+          disabled={!selectedUser || selectedBooks.length === 0 || !dueDate}
         >
           Confirm Borrow
         </button>

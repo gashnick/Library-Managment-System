@@ -1,6 +1,8 @@
 const Book = require("../models/book.model");
 const BookCopy = require('../models/copy.book.model')
 const errorHandler = require("../utils/error");
+const User = require ('../models/user.model')
+const Transaction = require('../models/transaction.model')
 
 // Create a new book
 const createBook = async (req, res, next) => {
@@ -123,22 +125,27 @@ const fetchBookCopies = async (req, res,next) => {
  
 }
 
-const machedCopies = async (req, res, next) => {
+const Stats = async (req, res, next) => {
   try {
-    const books = await Book.find();
-    const copies = await BookCopy.find();
-    const bookWithCopies = books.map(book => {
-      const availbaleCopies = copies.filter(coppy => coppy.bookId.toString() === book._id.toString() && coppy.status === 'Available');
-      return {
-        ...book.toString(),
-        availbaleCopies
+    const totalBooks = await Book.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$quantity' }
+        }
       }
+    ])
+    const totalUsers = await User.countDocuments()
+    const BorrowedBooks = await Transaction.countDocuments({status: 'Borrowed'})
+    const totalBooksCount = totalBooks[0]?.total || 0
+    res.status(200).json({
+      totalBooks: totalBooksCount, totalUsers, BorrowedBooks, availableBooks: totalBooksCount - BorrowedBooks
     })
-    res.json(bookWithCopies)
   } catch (error) {
-    
+    res.status(500).json({error: 'Internal server error'})
   }
 }
+
 
 module.exports = {
   createBook,
@@ -148,4 +155,5 @@ module.exports = {
   updateBookStatus,
   bookId,
   fetchBookCopies,
+  Stats
 };

@@ -1,87 +1,130 @@
 import React, { useState } from "react";
-import axios from "axios";
 
 const ReturnPage = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [bookDetails, setBookDetails] = useState(null);
-  const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState(""); // Search input state
+  const [borrowedBooks, setBorrowedBooks] = useState([]); // List of borrowed books
+  const [selectedBook, setSelectedBook] = useState(null); // Selected book for return
+  const [error, setError] = useState(""); // Error state
 
-  // Fetch book details based on search query
+  // Function to search for borrowed books by title
   const findBook = async () => {
+    setError(""); // Reset error state
     try {
-      const { data } = await axios.get(
-        `http://localhost:3000/api/transaction/find?title=${searchQuery}`
+      const response = await fetch(
+        `http://localhost:3000/api/transaction/find?bookTitle=${searchQuery}`
       );
-      if (data.length === 0) {
-        setError("No books found matching the search criteria.");
+      const data = await response.json();
+
+      if (data.length > 0) {
+        const borrowedBooks = data.filter((book) => book.status === "Borrowed");
+        setBorrowedBooks(borrowedBooks);
       } else {
-        setBookDetails(data[0]); // Assuming only one book matches, taking the first result
-        setError(""); // Clear any previous errors
+        setBorrowedBooks([]);
+        setError("No borrowed books found matching the search criteria.");
       }
-    } catch (error) {
-      setBookDetails(null);
-      setError("Error fetching book. Please try again later.");
+    } catch (err) {
+      setError("Error fetching books. Please try again.");
     }
   };
 
-  // Return book functionality
+  // Function to handle book selection
+  const handleSelectBook = (bookId) => {
+    const book = borrowedBooks.find((b) => b._id === bookId);
+    setSelectedBook(book);
+  };
+
+  // Function to return the selected book
   const returnBook = async () => {
+    if (!selectedBook) {
+      alert("Please select a book to return.");
+      return;
+    }
+  
     try {
-      const { data } = await axios.post(
-        `http://localhost:3000/api/transaction/return/${bookDetails._id}` // Use bookDetails._id here
+      const response = await fetch(
+        `http://localhost:3000/api/transaction/return/${selectedBook._id}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ borrowerId: selectedBook.borrowerId }), // Use borrowerId here
+        }
       );
-      alert(data.message || "Book returned successfully!");
-      setBookDetails(null); // Clear book details after returning
-      setSearchQuery(""); // Clear the search field
-    } catch (error) {
-      alert("Failed to return book. Please try again.");
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert(data.message || "Book returned successfully!");
+        setBorrowedBooks(borrowedBooks.filter((book) => book._id !== selectedBook._id));
+        setSelectedBook(null);
+      } else {
+        alert(data.message || "Failed to return book.");
+      }
+    } catch (err) {
+      alert("An error occurred. Please try again.");
     }
   };
   
 
   return (
-    <div className="p-6 bg-gray-100 rounded-lg mt-4">
-      <h2 className="text-2xl font-bold mb-4 text-center">Return a Book</h2>
+    <div className="max-w-4xl mx-auto p-6">
+      <h2 className="text-2xl font-bold text-center mb-6">Return Books</h2>
 
-      {/* Search Form */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Enter Book Title"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="border p-2 w-full rounded"
-        />
-        <button
-          onClick={findBook}
-          className="bg-blue-500 text-white px-4 py-2 mt-2 rounded w-full"
-        >
-          Find
-        </button>
+      <div className="flex gap-6">
+        {/* Search Box */}
+        <div className="flex-1 bg-white rounded-lg shadow p-4">
+          <div className="mb-4">
+            <h3 className="text-xl font-semibold mb-4">Search Book</h3>
+            <input
+              type="text"
+              placeholder="Enter Book Title"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border rounded mb-4"
+            />
+            <button
+              onClick={findBook}
+              className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Find Book
+            </button>
+          </div>
+        </div>
+
+        {/* Borrowed Books List Box */}
+        <div className="flex-1 bg-white rounded-lg shadow p-4">
+          <h3 className="text-xl font-semibold mb-4">Borrowed Books</h3>
+          {error ? (
+            <div className="text-red-500 p-4 bg-red-50 rounded">
+              {error}
+            </div>
+          ) : (
+            <ul>
+              {borrowedBooks.map((book) => (
+                <li
+                  key={book._id}
+                  className="p-2 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSelectBook(book._id)}
+                >
+                  <span>{book.title}</span> - <span>Borrower: {book.borrower}</span>
+                  {selectedBook && selectedBook._id === book._id && (
+                    <span className="text-green-500 ml-2">(Selected)</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
-      {/* Display Book Details or Error */}
-      {error && <p className="text-red-500">{error}</p>}
-      {bookDetails && (
-        <div className="bg-white p-4 rounded shadow">
-          <h3 className="text-lg font-bold mb-2">Book Details</h3>
-          <p>
-            <strong>Title:</strong> {bookDetails.title}
-          </p>
-          <p>
-            <strong>Author:</strong> {bookDetails.author}
-          </p>
-          <p>
-            <strong>Status:</strong> {bookDetails.status}
-          </p>
-          <button
-            onClick={returnBook}
-            className="bg-green-500 text-white px-4 py-2 mt-4 rounded"
-          >
-            Return Book
-          </button>
-        </div>
-      )}
+      {/* Return Book Button */}
+      <div className="mt-6 text-center">
+        <button
+          onClick={returnBook}
+          disabled={!selectedBook}
+          className="bg-green-500 text-white px-6 py-3 rounded hover:bg-green-600 disabled:bg-gray-400"
+        >
+          Return Selected Book
+        </button>
+      </div>
     </div>
   );
 };
