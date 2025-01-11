@@ -6,12 +6,24 @@ const issueBook = async (req, res, next) => {
     const { userId, bookIds, dueDate } = req.body; // bookIds is an array of book IDs
 
     // Check if the user has unreturned books
-    const unreturnedBooks = await Transaction.find({
-      userId,
-      status: "Borrowed",
-    });
+    const activeBorrowedBooks = await Transaction.aggregate([
+      { $match: { userId, status: "Borrowed" } }, // Find all borrowed books for the user
+      {
+        $lookup: {
+          from: "transactions", // Join with the same collection
+          localField: "bookId",
+          foreignField: "bookId",
+          as: "relatedTransactions",
+        },
+      },
+      {
+        $match: {
+          "relatedTransactions.status": { $ne: "Returned" }, // Ensure no "Returned" transaction exists for the same bookId
+        },
+      },
+    ]);
 
-    if (unreturnedBooks.length > 0) {
+    if (activeBorrowedBooks.length > 0) {
       return res.status(400).json({
         message: "You must return all borrowed books before borrowing new ones.",
       });
@@ -73,43 +85,54 @@ const returnBook = async (req, res) => {
   const { borrowerId } = req.body; // The borrower's ID from the request body
 
   try {
-    // Find the transaction for the borrowed book
-    const transaction = await Transaction.findOne({ bookId, userId: borrowerId });
-    //console.log("Book ID:", bookId);
-    //console.log("Borrower ID:", borrowerId);
+    // Find the most recent "Borrowed" transaction for this book and user
+    const lastTransaction = await Transaction.findOne({ bookId, userId: borrowerId, status: "Borrowed" })
+      .sort({ createdAt: -1 }); // Get the latest borrow transaction
 
-    // Check if the transaction exists and if the book is currently borrowed
-    if (!transaction) {
-      return res.status(404).json({ message: 'No borrowed book found for this user.' });
+    // Check if the transaction exists
+    if (!lastTransaction) {
+      return res.status(404).json({ message: 'No active borrowed book found for this user.' });
     }
 
-    if (transaction.status !== 'Borrowed') {
-      return res.status(400).json({ message: 'This book is not currently borrowed.' });
+    // Prevent duplicate returns by checking if the book is already returned
+    const existingReturnTransaction = await Transaction.findOne({
+      bookId,
+      userId: borrowerId,
+      status: "Returned",
+      returnDate: { $gte: lastTransaction.borrowDate }, // Return date must be after borrow date
+    });
+
+    if (existingReturnTransaction) {
+      return res.status(400).json({ message: 'This book has already been returned.' });
     }
 
-    // Update the transaction status to 'Returned'
-    transaction.status = 'Returned';
-    await transaction.save();
-
-    // Update the book's status to 'Available' if needed
+    // Update the book's quantity and status
     const book = await Book.findById(bookId);
     if (book) {
-      book.quantity += 1;
-      if (book.quantity > 0) {
-        book.status = "Available";
-      } else {
-        book.status = "Unavailable";
-      }
+      book.quantity += 1; // Increment the quantity
+      book.status = book.quantity > 0 ? "Available" : "Unavailable"; // Update status based on quantity
       await book.save();
     }
 
-    return res.status(200).json({ message: 'Book returned successfully!' });
+    // Create a new transaction for the returned book
+    const returnTransaction = new Transaction({
+      bookId,
+      userId: borrowerId,
+      status: "Returned",
+      borrowDate: lastTransaction.borrowDate, // Link to the borrow transaction
+      returnDate: new Date(),
+    });
+    await returnTransaction.save();
+
+    return res.status(200).json({ message: 'Book returned successfully!', returnTransaction });
 
   } catch (error) {
     console.error("Error in returnBook:", error);
     return res.status(500).json({ message: "Internal Server Error", error });
   }
 };
+
+
 
 
 const findBook = async (req, res, next) => {
