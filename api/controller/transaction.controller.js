@@ -136,70 +136,86 @@ const returnBook = async (req, res) => {
 
 
 const findBook = async (req, res, next) => {
-  const filter = req.query;
+  const { bookTitle } = req.query; // Extract the book title filter from the query params
 
   try {
-    let transactions = await Transaction.find()
-      .populate("bookId", "title") // Populate book title
-      .populate("userId", "username"); // Populate userId with username
+    // Find all "Borrowed" transactions without a corresponding "Returned" transaction
+    const borrowedTransactions = await Transaction.aggregate([
+      {
+        $match: { status: "Borrowed" }, // Match only "Borrowed" status
+      },
+      {
+        $lookup: {
+          from: "transactions", // Lookup in the transactions collection
+          let: { bookId: "$bookId", userId: "$userId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$bookId", "$$bookId"] },
+                    { $eq: ["$userId", "$$userId"] },
+                    { $eq: ["$status", "Returned"] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "returnedRecords", // Save matching returned transactions here
+        },
+      },
+      {
+        $match: { returnedRecords: { $size: 0 } }, // Keep only "Borrowed" transactions without "Returned" records
+      },
+      {
+        $lookup: {
+          from: "books", // Lookup book details
+          localField: "bookId",
+          foreignField: "_id",
+          as: "book",
+        },
+      },
+      {
+        $unwind: "$book", // Deconstruct the book array
+      },
+      {
+        $project: {
+          _id: "$book._id",
+          title: "$book.title",
+          borrower: "$userId", // User who borrowed the book
+          status: "$status",
+        },
+      },
+    ]);
 
-    if (filter.username) {
-      transactions = transactions.filter(
-        (transaction) => transaction.userId?.username.toLowerCase() === filter.username.toLowerCase()
-      );
-    }
-    if (filter.bookTitle) {
-      transactions = transactions.filter(
-        (transaction) => transaction.bookId?.title.toLowerCase() === filter.bookTitle.toLowerCase()
-      );
-    }
-    if (filter.status) {
-      transactions = transactions.filter(
-        (transaction) => transaction.status === filter.status
-      );
-    }
+    // Apply filtering by book title if provided
+    const filteredBooks = bookTitle
+      ? borrowedTransactions.filter((transaction) =>
+          transaction.title.toLowerCase().includes(bookTitle.toLowerCase())
+        )
+      : borrowedTransactions;
 
-    if (filter.search) {
-      const searchTerm = filter.search.toLowerCase();
-      transactions = transactions.filter((transaction) => {
-        const book = transaction.bookId;
-        const user = transaction.userId;
-        return (
-          (book &&
-            Object.values(book).some(
-              (value) =>
-                typeof value === "string" &&
-                value.toLowerCase().includes(searchTerm)
-            )) ||
-          (user &&
-            Object.values(user).some(
-              (value) =>
-                typeof value === "string" &&
-                value.toLowerCase().includes(searchTerm)
-            ))
-        );
-      });
-    }
-
-    const books = transactions.map((transaction) => ({
-      _id: transaction.bookId?._id || "N/A",
-      title: transaction.bookId?.title || "N/A",
-      borrower: transaction.userId?.username || "N/A", // Ensure the username is correctly populated
+    // Map the filtered transactions to the desired structure
+    const books = filteredBooks.map((transaction) => ({
+      _id: transaction._id || "N/A", // The book ID
+      title: transaction.title || "N/A", // The book title
+      borrower: transaction.borrower?.username || "N/A", // The username of the borrower
       status: transaction.status,
-      borrowerId: transaction.userId?._id || null // Include the borrowerId
+      borrowerId: transaction.borrower?._id || null, // The borrower's ID
     }));
 
     if (books.length > 0) {
       return res.status(200).json(books);
     } else {
-      return res.status(404).json({ message: "No books found matching the search criteria" });
+      return res
+        .status(404)
+        .json({ message: "No books found matching the search criteria." });
     }
   } catch (error) {
     console.error("Error in findBook:", error);
     return res.status(500).json({ message: "Internal Server Error", error });
   }
 };
-
 
 
 const getTransactions = async (req, res, next) => {

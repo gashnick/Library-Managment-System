@@ -1,11 +1,37 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import {
+  updateUserStart,
+  updateUserSuccess,
+  updateUserFailure,
+  signOutStart,
+  signOutFailure,
+  signOutSuccess,
+} from "../redux/user/userSlice";
 
 const Sidenav = () => {
-  // const dispatch = useDispatch();
-  // const [updateSuccess, setUpdateSuccess] = useState(false);
-  // const navigate = useNavigate()
+  const dispatch = useDispatch();
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const navigate = useNavigate()
+
+  const handleSignOut = async () => {
+      try {
+        dispatch(signOutStart());
+        const res = await fetch("/api/auth/signout");
+        const data = await res.json();
+        if (data.success === false) {
+          dispatch(signOutFailure(data.message));
+          return;
+        }
+        dispatch(signOutSuccess(data));
+        navigate("/sign-in");
+      } catch (error) {
+        dispatch(signOutFailure(error.message));
+      }
+    };
+  
   return (
     <div className="w-64 h-screen bg-slate-800 text-white">
       <h2 className="text-2xl font-bold p-4">Library Management</h2>
@@ -50,12 +76,9 @@ const Sidenav = () => {
           </Link>
         </li>
         <li>
-          <Link
-            to="/dashboard/history"
-            className="block p-4 hover:bg-slate-700"
-          >
-            Sign out
-          </Link>
+        <span onClick={handleSignOut} className="block p-4 hover:bg-slate-700 cursor-pointer">
+          Signout
+        </span>
         </li>
       </ul>
     </div>

@@ -131,20 +131,59 @@ const Stats = async (req, res, next) => {
       {
         $group: {
           _id: null,
-          total: { $sum: '$quantity' }
-        }
-      }
-    ])
-    const totalUsers = await User.countDocuments()
-    const BorrowedBooks = await Transaction.countDocuments({status: 'Borrowed'})
-    const totalBooksCount = totalBooks[0]?.total || 0
+          total: { $sum: '$quantity' },
+        },
+      },
+    ]);
+
+    const totalUsers = await User.countDocuments();
+
+    // Count borrowed books that don't have a corresponding returned record
+    const borrowedBooksWithoutReturn = await Transaction.aggregate([
+      {
+        $match: { status: 'Borrowed' },
+      },
+      {
+        $lookup: {
+          from: 'transactions',
+          let: { bookId: '$bookId', userId: '$userId' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$bookId', '$$bookId'] },
+                    { $eq: ['$userId', '$$userId'] },
+                    { $eq: ['$status', 'Returned'] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'returnedRecords',
+        },
+      },
+      {
+        $match: { returnedRecords: { $size: 0 } }, // Keep only those with no matching returned records
+      },
+      {
+        $count: 'borrowedBooksWithoutReturn', // Count the number of borrowed books without a return record
+      },
+    ]);
+
+    const BorrowedBooks = borrowedBooksWithoutReturn[0]?.borrowedBooksWithoutReturn || 0;
+    const totalBooksCount = totalBooks[0]?.total || 0;
+
     res.status(200).json({
-      totalBooks: totalBooksCount, totalUsers, BorrowedBooks, availableBooks: totalBooksCount - BorrowedBooks
-    })
+      totalBooks: totalBooksCount,
+      totalUsers,
+      BorrowedBooks,
+      availableBooks: totalBooksCount - BorrowedBooks,
+    });
   } catch (error) {
-    res.status(500).json({error: 'Internal server error'})
+    res.status(500).json({ error: 'Internal server error' });
   }
-}
+};
 
 
 module.exports = {
