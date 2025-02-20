@@ -42,4 +42,18 @@ const getUsers = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { updateUser, getUsers };
+
+const deleteUser = async (req, res, next) => {
+  const { id } = req.params; // Get the user ID from the request parameters
+  try {
+    const deletedUser = await User.findByIdAndDelete(id); // Pass the user ID to delete
+    if (!deletedUser) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.status(200).json({ success: true, deletedUser });
+  } catch (error) {
+    next(error); // Pass the error to the next middleware
+  }
+};
+
+module.exports = { updateUser, getUsers, deleteUser };
